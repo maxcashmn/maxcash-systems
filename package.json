@@ -1,0 +1,28 @@
+{
+  "name": "maxcash-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MaxCash - Loan Management System Monorepo",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "deploy": "turbo deploy",
+    "deploy:staging": "turbo deploy:staging",
+    "deploy:prod": "turbo deploy:prod",
+    "type-check": "turbo type-check",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "clean": "turbo clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+  },
+  "devDependencies": {
+    "turbo": "^1.12.4",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
