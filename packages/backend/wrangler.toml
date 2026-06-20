@@ -1,0 +1,26 @@
+name = "maxcash-backend"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+workers_dev = true
+
+# Environment variables for development
+[vars]
+NODE_ENV = "development"
+
+# Environment-specific configurations
+[env.staging]
+vars = { NODE_ENV = "staging" }
+
+[env.production]
+vars = { NODE_ENV = "production" }
+
+# Database binding (if using D1 in the future)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "maxcash-db"
+# database_id = "your-database-id"
+
+# KV Namespace binding (for sessions, cache)
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "your-kv-id"

@@ -1,6 +1,7 @@
 # MaxCash - Loan Management System
 
 A serverless loan management system built with:
+
 - **Frontend**: React + Vite + Tailwind (Cloudflare Pages)
 - **Backend**: Cloudflare Workers + Hono
 - **Database**: Neon Serverless PostgreSQL
@@ -40,6 +41,7 @@ maxcash-platform/
 ## 📚 Documentation
 
 See the `docs/` folder for:
+
 - Architecture overview
 - API documentation
 - Database schema
