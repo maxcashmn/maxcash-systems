@@ -8,10 +8,19 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { errorHandler } from './middleware/errorHandler';
 import v1Routes from './routes/v1';
+import { initDb } from './db';
 
 const app = new Hono();
 
-// Global middleware
+// Middleware to initialize database
+app.use('*', async (c, next) => {
+  // @ts-ignore - env is available in Workers environment
+  const env = c.env || {};
+  // Initialize database
+  initDb(env);
+  await next();
+});
+
 app.use('*', logger());
 app.use('*', cors());
 app.use('*', errorHandler);
@@ -51,7 +60,7 @@ app.get('/debug/db', async (c) => {
   try {
     // @ts-ignore - env is available in Workers environment
     const env = c.env || {};
-    const { initDb, query } = await import('./db');
+    const { query } = await import('./db');
     initDb(env);
     const result = await query('SELECT 1 as test, NOW() as time', [], env);
     return c.json({
