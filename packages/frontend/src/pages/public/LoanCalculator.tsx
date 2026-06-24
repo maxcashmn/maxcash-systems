@@ -14,8 +14,6 @@ export const LoanCalculator: React.FC = () => {
   } | null>(null);
 
   const calculateLoan = () => {
-    // SIMPLE INTEREST: Interest is a fixed percentage of the principal
-    // Total Interest = Principal × (Rate / 100)
     const totalInterest = amount * (interestRate / 100);
     const totalRepayment = amount + totalInterest;
     const monthlyPayment = totalRepayment / termMonths;
@@ -48,14 +46,14 @@ export const LoanCalculator: React.FC = () => {
                 type="range"
                 min="100"
                 max="50000"
-                step="100"
+                step="0.5"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 className="w-full"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-1">
                 <span>$100</span>
-                <span className="font-semibold text-gray-900">${amount.toLocaleString()}</span>
+                <span className="font-semibold text-gray-900">${amount.toFixed(2)}</span>
                 <span>$50,000</span>
               </div>
             </div>
@@ -105,7 +103,7 @@ export const LoanCalculator: React.FC = () => {
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">
                 💡 <strong>How it works:</strong> Interest is a fixed percentage of the loan amount. 
-                This depends on the number of months agreed; minimum 1 month to maximum  12 months, the total interest remains the same.
+                This depends on the number of months agreed; minimum 1 month to maximum 12 months, the total interest remains the same.
               </p>
             </div>
 
