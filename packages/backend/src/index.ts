@@ -8,26 +8,15 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { errorHandler } from './middleware/errorHandler';
 import v1Routes from './routes/v1';
-import { query, initDb } from './db';
 
 const app = new Hono();
 
-// Middleware to initialize database with env
-app.use('*', async (c, next) => {
-  // @ts-ignore - env is available in Workers environment
-  const env = c.env || {};
-  // Initialize database with env
-  initDb(env);
-  // Store env in context for later use
-  // @ts-ignore - adding custom property to context
-  c.env = env;
-  await next();
-});
-
+// Global middleware
 app.use('*', logger());
 app.use('*', cors());
 app.use('*', errorHandler);
 
+// Health check endpoint
 app.get('/', (c) => {
   return c.json({
     status: 'ok',
@@ -48,12 +37,12 @@ app.get('/health', (c) => {
 app.get('/debug/env', (c) => {
   // @ts-ignore - env is available in Workers environment
   const env = c.env || {};
-  const databaseUrl = (env.DATABASE_URL as string) || '';
+  const databaseUrl = env.DATABASE_URL || '';
   return c.json({
     hasDatabaseUrl: !!databaseUrl,
-    databaseUrlPrefix: databaseUrl ? databaseUrl.substring(0, 20) + '...' : 'not set',
-    nodeEnv: (env.NODE_ENV as string) || 'not set',
-    hasJwtSecret: !!(env.JWT_SECRET as string),
+    databaseUrlPrefix: typeof databaseUrl === 'string' ? databaseUrl.substring(0, 20) + '...' : 'not set',
+    nodeEnv: env.NODE_ENV || 'not set',
+    hasJwtSecret: !!env.JWT_SECRET,
   });
 });
 
@@ -62,6 +51,7 @@ app.get('/debug/db', async (c) => {
   try {
     // @ts-ignore - env is available in Workers environment
     const env = c.env || {};
+    const { initDb, query } = await import('./db');
     initDb(env);
     const result = await query('SELECT 1 as test, NOW() as time', [], env);
     return c.json({
@@ -70,10 +60,11 @@ app.get('/debug/db', async (c) => {
       result: result,
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return c.json({
       success: false,
       message: 'Database connection failed',
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMessage,
     }, 500);
   }
 });
