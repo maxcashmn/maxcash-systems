@@ -2,9 +2,12 @@ export const ROUTES = {
   // Public
   HOME: '/',
   ABOUT: '/about',
+  SERVICES: '/services',
   LOAN_PRODUCTS: '/loan-products',
+  LOAN_CALCULATOR: '/loan-calculator',
   FAQ: '/faq',
   CONTACT: '/contact',
+  APPLY: '/apply',
   
   // Auth
   LOGIN: '/login',
