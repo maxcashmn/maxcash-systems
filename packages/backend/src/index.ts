@@ -12,7 +12,7 @@ import { initDb } from './db';
 
 const app = new Hono();
 
-// Middleware to initialize database
+// Middleware to initialize database for all requests
 app.use('*', async (c, next) => {
   // @ts-ignore - env is available in Workers environment
   const env = c.env || {};
