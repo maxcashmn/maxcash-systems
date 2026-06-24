@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 
+// Import the logo
+import logo from '/maxcash.png';
+
 const navItems = [
   { label: 'Home', path: ROUTES.HOME },
   { label: 'About', path: ROUTES.ABOUT },
@@ -23,8 +26,9 @@ export const PublicLayout = () => {
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <Link to={ROUTES.HOME} className="text-xl font-bold text-primary-600 flex items-center gap-2">
-              <span>💰</span> MaxCash
+            <Link to={ROUTES.HOME} className="flex items-center gap-2">
+              <img src={logo} alt="MaxCash" className="h-8 w-auto" />
+              <span className="text-xl font-bold text-primary-600">MaxCash</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-4 lg:gap-6">

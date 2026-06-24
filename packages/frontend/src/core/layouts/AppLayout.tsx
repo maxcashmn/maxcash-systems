@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useUIStore } from '../state/uiStore';
+import logo from '/maxcash.png';
 
 export const AppLayout = () => {
   const { user } = useAuth();
@@ -8,11 +9,11 @@ export const AppLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}>
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-primary-600">MaxCash</span>
+            <img src={logo} alt="MaxCash" className="h-8 w-auto" />
+            {sidebarOpen && <span className="text-xl font-bold text-primary-600">MaxCash</span>}
           </div>
         </div>
 
@@ -34,7 +35,7 @@ export const AppLayout = () => {
             {sidebarOpen && <span>Notifications</span>}
           </a>
           <a href="/profile" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
-            <span>👤</span>
+            <span>��</span>
             {sidebarOpen && <span>Profile</span>}
           </a>
         </nav>
@@ -54,9 +55,7 @@ export const AppLayout = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
           <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-gray-100">
             ☰
@@ -66,7 +65,6 @@ export const AppLayout = () => {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
