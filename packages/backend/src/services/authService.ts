@@ -15,61 +15,78 @@ export async function registerUser(data: {
   lastName: string;
   phoneNumber?: string;
 }) {
-  // Check if user already exists
-  const existingUser = await userRepo.findByEmail(data.email);
-  if (existingUser) {
-    throw AppError.conflict('User with this email already exists');
-  }
+  console.log('🟢 registerUser called with email:', data.email);
+  
+  try {
+    // Check if user already exists
+    console.log('🔍 Checking if user exists...');
+    const existingUser = await userRepo.findByEmail(data.email);
+    if (existingUser) {
+      console.log('⚠️ User already exists:', data.email);
+      throw AppError.conflict('User with this email already exists');
+    }
 
-  // Hash password
-  const hashedPassword = await hashPassword(data.password);
+    // Hash password
+    console.log('🔐 Hashing password...');
+    const hashedPassword = await hashPassword(data.password);
+    console.log('✅ Password hashed successfully');
 
-  // Create user with password_hash included
-  const user = await userRepo.create({
-    id: generateId(),
-    email: data.email,
-    firstName: data.firstName,
-    lastName: data.lastName,
-    phoneNumber: data.phoneNumber,
-    role: 'borrower',
-    status: 'pending',
-    password_hash: hashedPassword,
-    email_verified: false,
-    phone_verified: false,
-  });
+    // Create user with password_hash included
+    console.log('📝 Creating user in database...');
+    const user = await userRepo.create({
+      id: generateId(),
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phoneNumber: data.phoneNumber,
+      role: 'borrower',
+      status: 'pending',
+      password_hash: hashedPassword,
+      email_verified: false,
+      phone_verified: false,
+    });
+    console.log('✅ User created:', user.id);
 
-  // Generate tokens
-  const token = await signJWT({
-    sub: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  const refreshToken = await signRefreshToken({
-    sub: user.id,
-  });
-
-  // Store refresh token
-  await refreshTokenRepo.create({
-    id: generateId(),
-    user_id: user.id,
-    token: refreshToken,
-    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    revoked: false,
-  });
-
-  return {
-    user: {
-      id: user.id,
+    // Generate tokens
+    console.log('🔑 Generating JWT tokens...');
+    const token = await signJWT({
+      sub: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
       role: user.role,
-      status: user.status,
-    },
-    token,
-    refreshToken,
-  };
+    });
+
+    const refreshToken = await signRefreshToken({
+      sub: user.id,
+    });
+    console.log('✅ Tokens generated');
+
+    // Store refresh token
+    console.log('💾 Storing refresh token...');
+    await refreshTokenRepo.create({
+      id: generateId(),
+      user_id: user.id,
+      token: refreshToken,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      revoked: false,
+    });
+    console.log('✅ Refresh token stored');
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        status: user.status,
+      },
+      token,
+      refreshToken,
+    };
+  } catch (error) {
+    console.error('❌ Error in registerUser:', error);
+    throw error;
+  }
 }
 
 export async function loginUser(email: string, password: string) {
