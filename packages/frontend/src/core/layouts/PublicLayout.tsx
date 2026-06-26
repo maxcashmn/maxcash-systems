@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-
-// Import the logo
 import logo from '/maxcash.png';
 
 const navItems = [
@@ -51,6 +49,9 @@ export const PublicLayout = () => {
               <Link to="/login" className="btn-secondary text-sm px-4 py-2">
                 Login
               </Link>
+              <Link to="/register" className="btn-secondary text-sm px-4 py-2">
+                Register
+              </Link>
             </div>
 
             <button
@@ -92,6 +93,13 @@ export const PublicLayout = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Login
+              </Link>
+              <Link
+                to="/register"
+                className="block px-3 py-2 rounded-lg text-sm border border-gray-300 text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Register
               </Link>
             </div>
           </div>
