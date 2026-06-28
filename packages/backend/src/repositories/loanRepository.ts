@@ -2,18 +2,20 @@ import { BaseRepository } from './baseRepository';
 
 export interface Loan {
   id: string;
-  user_id: string;
-  amount: number;
-  interest_rate: number;
-  term_months: number;
-  purpose: string;
-  status: string;
+  application_id: string;
+  borrower_id: string;
   approved_by?: string;
-  approved_at?: Date;
-  disbursed_at?: Date;
+  principal_amount: number;
+  interest_rate: number;
+  currency: string;
+  status: string;
+  risk_score?: number;
+  total_repaid?: number;
+  remaining_balance?: number;
   created_at: Date;
   updated_at: Date;
-  deleted_at?: Date;
+  disbursed_at?: Date;
+  due_date?: Date;
 }
 
 export class LoanRepository extends BaseRepository<Loan> {
@@ -21,23 +23,26 @@ export class LoanRepository extends BaseRepository<Loan> {
   protected mapToEntity(row: any): Loan {
     return {
       id: row.id,
-      user_id: row.user_id,
-      amount: row.amount,
-      interest_rate: row.interest_rate,
-      term_months: row.term_months,
-      purpose: row.purpose,
-      status: row.status,
+      application_id: row.application_id,
+      borrower_id: row.borrower_id,
       approved_by: row.approved_by,
-      approved_at: row.approved_at,
-      disbursed_at: row.disbursed_at,
+      principal_amount: row.principal_amount,
+      interest_rate: row.interest_rate,
+      currency: row.currency,
+      status: row.status,
+      risk_score: row.risk_score,
+      total_repaid: row.total_repaid,
+      remaining_balance: row.remaining_balance,
       created_at: row.created_at,
       updated_at: row.updated_at,
+      disbursed_at: row.disbursed_at,
+      due_date: row.due_date,
     };
   }
 
   async findByUserId(userId: string): Promise<Loan[]> {
     const result = await this.query(
-      `SELECT * FROM ${this.tableName} WHERE user_id = $1 ORDER BY created_at DESC`,
+      `SELECT * FROM ${this.tableName} WHERE borrower_id = $1 ORDER BY created_at DESC`,
       [userId]
     );
     return result.map((row: any) => this.mapToEntity(row));
@@ -45,7 +50,7 @@ export class LoanRepository extends BaseRepository<Loan> {
 
   async findActiveLoans(): Promise<Loan[]> {
     const result = await this.query(
-      `SELECT * FROM ${this.tableName} WHERE status IN ('active', 'disbursed') AND deleted_at IS NULL`
+      `SELECT * FROM ${this.tableName} WHERE status IN ('active', 'disbursed')`
     );
     return result.map((row: any) => this.mapToEntity(row));
   }
@@ -59,7 +64,7 @@ export class LoanRepository extends BaseRepository<Loan> {
 
   async approveLoan(loanId: string, approvedBy: string): Promise<void> {
     await this.query(
-      `UPDATE ${this.tableName} SET status = 'approved', approved_by = $1, approved_at = NOW(), updated_at = NOW() WHERE id = $2`,
+      `UPDATE ${this.tableName} SET status = 'approved', approved_by = $1, updated_at = NOW() WHERE id = $2`,
       [approvedBy, loanId]
     );
   }

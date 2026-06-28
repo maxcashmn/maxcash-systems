@@ -32,12 +32,29 @@ import { ResetPassword } from './pages/auth/ResetPassword';
 import { Unauthorized } from './pages/auth/Unauthorized';
 
 // ============================================
-// PHASE 3-6: PROTECTED PAGES (Coming Soon)
+// PHASE 3: BORROWER PAGES ✅
 // ============================================
-// import { Dashboard as BorrowerDashboard } from './pages/borrower/Dashboard';
-// import { Dashboard as ManagerDashboard } from './pages/manager/Dashboard';
-// import { Dashboard as AuditorDashboard } from './pages/auditor/Dashboard';
-// import { Dashboard as AdminDashboard } from './pages/admin/Dashboard';
+import { Dashboard as BorrowerDashboard } from './pages/borrower/Dashboard';
+import { LoanApplication } from './pages/borrower/LoanApplication';
+import { MyLoans } from './pages/borrower/MyLoans';
+
+// ============================================
+// PHASE 4: MANAGER PAGES ✅
+// ============================================
+import { Dashboard as ManagerDashboard } from './pages/manager/Dashboard';
+import { ReviewApplications } from './pages/manager/ReviewApplications';
+
+// ============================================
+// PHASE 5: AUDITOR PAGES ✅
+// ============================================
+import { Dashboard as AuditorDashboard } from './pages/auditor/Dashboard';
+
+// ============================================
+// PHASE 6: ADMIN PAGES ✅
+// ============================================
+import { Dashboard as AdminDashboard } from './pages/admin/Dashboard';
+import { Users } from './pages/admin/Users';
+import { Loans as AdminLoans } from './pages/admin/Loans';
 
 function App() {
   return (
@@ -72,23 +89,45 @@ function App() {
               </Route>
 
               {/* ============================================
-                  PHASE 3-6: PROTECTED ROUTES (Coming Soon)
+                  PHASE 3: BORROWER ROUTES ✅
                   ============================================ */}
-              {/* 
               <Route element={<ProtectedRoute allowedRoles={['borrower']} />}>
                 <Route element={<AppLayout />}>
                   <Route path={ROUTES.DASHBOARD} element={<BorrowerDashboard />} />
                   <Route path="/loan-application" element={<LoanApplication />} />
                   <Route path="/my-loans" element={<MyLoans />} />
-                  <Route path="/my-loans/:id" element={<LoanDetails />} />
-                  <Route path="/repayment-schedule" element={<RepaymentSchedule />} />
-                  <Route path="/transactions" element={<Transactions />} />
-                  <Route path={ROUTES.PROFILE} element={<Profile />} />
-                  <Route path={ROUTES.SETTINGS} element={<Settings />} />
-                  <Route path={ROUTES.NOTIFICATIONS} element={<Notifications />} />
                 </Route>
               </Route>
-              */}
+
+              {/* ============================================
+                  PHASE 4: MANAGER ROUTES ✅
+                  ============================================ */}
+              <Route element={<ProtectedRoute allowedRoles={['manager']} />}>
+                <Route element={<AppLayout />}>
+                  <Route path="/manager/dashboard" element={<ManagerDashboard />} />
+                  <Route path="/manager/review" element={<ReviewApplications />} />
+                </Route>
+              </Route>
+
+              {/* ============================================
+                  PHASE 5: AUDITOR ROUTES ✅
+                  ============================================ */}
+              <Route element={<ProtectedRoute allowedRoles={['auditor']} />}>
+                <Route element={<AppLayout />}>
+                  <Route path="/auditor/dashboard" element={<AuditorDashboard />} />
+                </Route>
+              </Route>
+
+              {/* ============================================
+                  PHASE 6: ADMIN ROUTES ✅
+                  ============================================ */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route element={<AppLayout />}>
+                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route path="/admin/users" element={<Users />} />
+                  <Route path="/admin/loans" element={<AdminLoans />} />
+                </Route>
+              </Route>
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

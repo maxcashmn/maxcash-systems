@@ -33,18 +33,20 @@ export async function applyForLoan(data: {
 
   // Calculate interest (using a base rate of 5% + risk adjustment)
   const baseRate = 5;
-  // Simple risk adjustment based on loan amount relative to income
   const incomeRatio = data.amount / data.monthlyIncome;
   const riskAdjustment = incomeRatio > 24 ? 3 : incomeRatio > 12 ? 2 : 1;
   const interestRate = baseRate + riskAdjustment;
 
+  // Create a loan application first
+  const applicationId = generateId();
+  // Then create the loan
   const loan = await loanRepo.create({
     id: generateId(),
-    user_id: data.userId,
-    amount: data.amount,
+    application_id: applicationId,
+    borrower_id: data.userId,
+    principal_amount: data.amount,
     interest_rate: interestRate,
-    term_months: data.termMonths,
-    purpose: data.purpose,
+    currency: 'USD',
     status: 'pending',
   });
 
@@ -99,20 +101,8 @@ export async function getLoanById(loanId: string) {
     throw AppError.notFound('Loan not found');
   }
 
-  // Calculate repayment details
-  const monthlyPayment = calculateRepayment(
-    loan.amount,
-    loan.interest_rate,
-    loan.term_months
-  );
-  const totalRepayment = monthlyPayment * loan.term_months;
-  const totalInterest = totalRepayment - loan.amount;
-
   return {
     ...loan,
-    monthlyPayment,
-    totalRepayment,
-    totalInterest,
   };
 }
 

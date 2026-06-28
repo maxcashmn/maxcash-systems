@@ -28,9 +28,9 @@ const services = [
 ];
 
 const stats = [
-  { value: '500+', label: 'Happy Clients' },
-  { value: '$2M+', label: 'Funds Disbursed' },
-  { value: '98%', label: 'Satisfaction Rate' },
+  { value: '100+', label: 'Happy Clients' },
+  { value: '$100K+', label: 'Funds Disbursed' },
+  { value: '99%', label: 'Satisfaction Rate' },
   { value: '24/7', label: 'Customer Support' },
 ];
 

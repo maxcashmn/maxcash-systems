@@ -2,7 +2,7 @@ import { useAuthStore } from '../state/authStore';
 import { authApi } from '../api/authApi';
 import { userApi } from '../api/userApi';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface RegisterData {
   email: string;
@@ -14,14 +14,35 @@ interface RegisterData {
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { user, token, refreshToken, isAuthenticated, setUser, setTokens, clearAuth, setLoading } = useAuthStore();
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        try {
+          const response = await userApi.me();
+          setUser(response.data);
+        } catch (error) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          setUser(null);
+        }
+      }
+      setIsLoading(false);
+      setLoading(false);
+    };
+    initAuth();
+  }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
       const response = await authApi.login({ email, password });
       const { token, refreshToken, user } = response.data;
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('refreshToken', refreshToken);
       setTokens(token, refreshToken);
       setUser(user);
       navigate('/dashboard');
@@ -38,6 +59,8 @@ export const useAuth = () => {
     try {
       const response = await authApi.register(data);
       const { token, refreshToken, user } = response.data;
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('refreshToken', refreshToken);
       setTokens(token, refreshToken);
       setUser(user);
       navigate('/dashboard');
@@ -55,6 +78,8 @@ export const useAuth = () => {
     } catch (error) {
       // Ignore logout errors
     } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       clearAuth();
       navigate('/login');
     }
@@ -96,7 +121,7 @@ export const useAuth = () => {
     token,
     refreshToken,
     isAuthenticated,
-    isLoading: isLoading || useAuthStore.getState().isLoading,
+    isLoading,
     login,
     register,
     logout,
