@@ -5,10 +5,60 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { icon: '📘', label: 'Facebook', className: 'bg-[#1877f2] hover:bg-[#1877f2]/80 hover:shadow-blue-500/20' },
-    { icon: '🐦', label: 'Twitter', className: 'bg-black hover:bg-black/80 hover:shadow-gray-500/20' },
-    { icon: '📷', label: 'Instagram', className: 'bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#dc2743] hover:from-[#f09433]/80 hover:via-[#e6683c]/80 hover:to-[#dc2743]/80 hover:shadow-pink-500/20' },
-    { icon: '💼', label: 'LinkedIn', className: 'bg-[#0a66c2] hover:bg-[#0a66c2]/80 hover:shadow-blue-500/20' },
+    { 
+      icon: '📘', 
+      label: 'Facebook', 
+      url: 'https://facebook.com/maxcash',
+      className: 'bg-[#1877f2] hover:bg-[#1877f2]/80 hover:shadow-blue-500/20' 
+    },
+    { 
+      icon: '🐦', 
+      label: 'Twitter', 
+      url: 'https://twitter.com/maxcash',
+      className: 'bg-black hover:bg-black/80 hover:shadow-gray-500/20' 
+    },
+    { 
+      icon: '📷', 
+      label: 'Instagram', 
+      url: 'https://instagram.com/maxcash',
+      className: 'bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#dc2743] hover:from-[#f09433]/80 hover:via-[#e6683c]/80 hover:to-[#dc2743]/80 hover:shadow-pink-500/20' 
+    },
+    { 
+      icon: '💼', 
+      label: 'LinkedIn', 
+      url: 'https://linkedin.com/company/maxcash',
+      className: 'bg-[#0a66c2] hover:bg-[#0a66c2]/80 hover:shadow-blue-500/20' 
+    },
+  ];
+
+  // Contact information
+  const contactInfo = {
+    phone: '+231 123 456 789',
+    email: 'info@maxcash.com',
+    address: 'Monrovia, Liberia',
+  };
+
+  // Service links with proper paths
+  const services = [
+    { label: 'Lending', path: '/services#lending' },
+    { label: 'Digital & Telecom', path: '/services#digital' },
+    { label: 'General Trade', path: '/services#trade' },
+    { label: 'Consultancy', path: '/services#consultancy' },
+  ];
+
+  // Quick links
+  const quickLinks = [
+    { label: 'About', path: ROUTES.ABOUT },
+    { label: 'FAQ', path: ROUTES.FAQ },
+    { label: 'Contact', path: ROUTES.CONTACT },
+    { label: 'Apply', path: ROUTES.APPLY },
+  ];
+
+  // Legal links
+  const legalLinks = [
+    { label: 'Privacy Policy', path: '/privacy' },
+    { label: 'Terms of Service', path: '/terms' },
+    { label: 'Cookies', path: '/cookies' },
   ];
 
   return (
@@ -36,7 +86,9 @@ export const Footer = () => {
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
-                  href="#"
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={social.label}
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-all duration-300 hover:shadow-lg ${social.className}`}
                 >
@@ -53,14 +105,14 @@ export const Footer = () => {
               <span className="absolute bottom-[-8px] left-0 w-8 h-0.5 bg-orange-400 rounded-full"></span>
             </h4>
             <ul className="space-y-2.5 pt-2">
-              {['Lending', 'Digital & Telecom', 'General Trade', 'Consultancy'].map((service) => (
-                <li key={service}>
+              {services.map((service) => (
+                <li key={service.label}>
                   <Link
-                    to="/services"
+                    to={service.path}
                     className="text-sm text-gray-400 hover:text-white transition-all duration-300 flex items-center gap-2 group"
                   >
                     <span className="w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-4"></span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">{service}</span>
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">{service.label}</span>
                   </Link>
                 </li>
               ))}
@@ -74,12 +126,7 @@ export const Footer = () => {
               <span className="absolute bottom-[-8px] left-0 w-8 h-0.5 bg-orange-400 rounded-full"></span>
             </h4>
             <ul className="space-y-2.5 pt-2">
-              {[
-                { label: 'About', path: ROUTES.ABOUT },
-                { label: 'FAQ', path: ROUTES.FAQ },
-                { label: 'Contact', path: ROUTES.CONTACT },
-                { label: 'Apply', path: '/apply' },
-              ].map((link) => (
+              {quickLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     to={link.path}
@@ -102,15 +149,32 @@ export const Footer = () => {
             <ul className="space-y-3 pt-2">
               <li className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors duration-300 group">
                 <span className="text-lg group-hover:scale-110 transition-transform duration-300">📞</span>
-                <span className="group-hover:translate-x-1 transition-transform duration-300">+231 123 456 789</span>
+                <a 
+                  href={`tel:${contactInfo.phone.replace(/\s/g, '')}`}
+                  className="group-hover:translate-x-1 transition-transform duration-300 hover:text-white"
+                >
+                  {contactInfo.phone}
+                </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors duration-300 group">
                 <span className="text-lg group-hover:scale-110 transition-transform duration-300">📧</span>
-                <span className="group-hover:translate-x-1 transition-transform duration-300">info@maxcash.com</span>
+                <a 
+                  href={`mailto:${contactInfo.email}`}
+                  className="group-hover:translate-x-1 transition-transform duration-300 hover:text-white"
+                >
+                  {contactInfo.email}
+                </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-colors duration-300 group">
                 <span className="text-lg group-hover:scale-110 transition-transform duration-300">📍</span>
-                <span className="group-hover:translate-x-1 transition-transform duration-300">Monrovia, Liberia</span>
+                <a 
+                  href={`https://maps.google.com/?q=${encodeURIComponent(contactInfo.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group-hover:translate-x-1 transition-transform duration-300 hover:text-white"
+                >
+                  {contactInfo.address}
+                </a>
               </li>
             </ul>
           </div>
@@ -123,9 +187,15 @@ export const Footer = () => {
               &copy; {currentYear} MaxCash. All rights reserved.
             </p>
             <div className="flex items-center gap-6 text-xs text-gray-500">
-              <Link to="#" className="hover:text-white transition-colors duration-300 hover:scale-105 transform">Privacy Policy</Link>
-              <Link to="#" className="hover:text-white transition-colors duration-300 hover:scale-105 transform">Terms of Service</Link>
-              <Link to="#" className="hover:text-white transition-colors duration-300 hover:scale-105 transform">Cookies</Link>
+              {legalLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.path}
+                  className="hover:text-white transition-colors duration-300 hover:scale-105 transform"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
