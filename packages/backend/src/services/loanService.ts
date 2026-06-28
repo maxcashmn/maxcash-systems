@@ -1,7 +1,6 @@
 import { LoanRepository } from '../repositories/loanRepository';
 import { AppError } from '../errors/AppError';
 import { generateId } from '../utils/helpers';
-import { calculateRepayment } from '../utils/currency';
 
 const loanRepo = new LoanRepository();
 
@@ -37,12 +36,10 @@ export async function applyForLoan(data: {
   const riskAdjustment = incomeRatio > 24 ? 3 : incomeRatio > 12 ? 2 : 1;
   const interestRate = baseRate + riskAdjustment;
 
-  // Create a loan application first
-  const applicationId = generateId();
-  // Then create the loan
+  // Create the loan
   const loan = await loanRepo.create({
     id: generateId(),
-    application_id: applicationId,
+    application_id: generateId(),
     borrower_id: data.userId,
     principal_amount: data.amount,
     interest_rate: interestRate,
