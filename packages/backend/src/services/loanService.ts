@@ -1,6 +1,7 @@
 import { LoanRepository } from '../repositories/loanRepository';
 import { AppError } from '../errors/AppError';
 import { generateId } from '../utils/helpers';
+import { calculateRepayment } from '../utils/currency';
 
 const loanRepo = new LoanRepository();
 
@@ -12,39 +13,37 @@ export async function applyForLoan(data: {
   employmentStatus: string;
   monthlyIncome: number;
 }) {
+  // Simple validation
   if (data.amount <= 0) {
     throw AppError.validation('Loan amount must be greater than 0');
   }
 
-  if (data.termMonths <= 0) {
-    throw AppError.validation('Loan term must be greater than 0');
+  if (data.termMonths <= 0 || data.termMonths > 12) {
+    throw AppError.validation('Loan term must be between 1 and 12 months');
   }
 
-  // Check for existing active loan applications
-  const existingLoans = await loanRepo.findByUserId(data.userId);
-  const activeApplications = existingLoans.filter(
-    (loan: any) => loan.status === 'pending' || loan.status === 'under_review'
-  );
-
-  if (activeApplications.length > 0) {
-    throw AppError.conflict('You already have a pending loan application');
-  }
-
-  // Calculate interest (using a base rate of 5% + risk adjustment)
+  // Simple interest rate (5% base + risk adjustment)
   const baseRate = 5;
   const incomeRatio = data.amount / data.monthlyIncome;
   const riskAdjustment = incomeRatio > 24 ? 3 : incomeRatio > 12 ? 2 : 1;
   const interestRate = baseRate + riskAdjustment;
 
-  // Create the loan
+  // Create application first
+  // TODO: Insert into loan_applications table
+
+  // Create loan
   const loan = await loanRepo.create({
     id: generateId(),
-    application_id: generateId(),
+    application_id: generateId(), // TODO: Link to actual application
     borrower_id: data.userId,
     principal_amount: data.amount,
     interest_rate: interestRate,
     currency: 'USD',
     status: 'pending',
+    disbursed_at: new Date(),
+    due_date: new Date(Date.now() + data.termMonths * 30 * 24 * 60 * 60 * 1000),
+    created_at: new Date(),
+    updated_at: new Date(),
   });
 
   return loan;
@@ -98,15 +97,37 @@ export async function getLoanById(loanId: string) {
     throw AppError.notFound('Loan not found');
   }
 
+  // Calculate repayment details
+  const monthlyPayment = calculateRepayment(
+    loan.principal_amount,
+    loan.interest_rate,
+    12
+  );
+  const totalRepayment = monthlyPayment * 12;
+  const totalInterest = totalRepayment - loan.principal_amount;
+
   return {
     ...loan,
+    monthlyPayment,
+    totalRepayment,
+    totalInterest,
   };
 }
 
 export async function getUserLoans(userId: string) {
-  return await loanRepo.findByUserId(userId);
+  try {
+    return await loanRepo.findByUserId(userId);
+  } catch (error) {
+    console.error('Error getting user loans:', error);
+    return [];
+  }
 }
 
 export async function getActiveLoans() {
-  return await loanRepo.findActiveLoans();
+  try {
+    return await loanRepo.findActiveLoans();
+  } catch (error) {
+    console.error('Error getting active loans:', error);
+    return [];
+  }
 }
