@@ -10,9 +10,7 @@ import { AuthLayout } from './core/layouts/AuthLayout';
 import { AppLayout } from './core/layouts/AppLayout';
 import { PublicLayout } from './core/layouts/PublicLayout';
 
-// ============================================
-// PHASE 1: PUBLIC PAGES ✅
-// ============================================
+// Public Pages
 import { Home } from './pages/public/Home';
 import { About } from './pages/public/About';
 import { Services } from './pages/public/Services';
@@ -22,36 +20,30 @@ import { FAQ } from './pages/public/FAQ';
 import { Contact } from './pages/public/Contact';
 import { Apply } from './pages/public/Apply';
 
-// ============================================
-// PHASE 2: AUTH PAGES ✅
-// ============================================
+// Auth Pages
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { ResetPassword } from './pages/auth/ResetPassword';
 import { Unauthorized } from './pages/auth/Unauthorized';
 
-// ============================================
-// PHASE 3: BORROWER PAGES ✅
-// ============================================
+// Borrower Pages
 import { Dashboard as BorrowerDashboard } from './pages/borrower/Dashboard';
 import { LoanApplication } from './pages/borrower/LoanApplication';
 import { MyLoans } from './pages/borrower/MyLoans';
+import { Profile } from './pages/borrower/Profile';
+import { Settings } from './pages/borrower/Settings';
+import { Notifications } from './pages/borrower/Notifications';
+import { Transactions } from './pages/borrower/Transactions';
 
-// ============================================
-// PHASE 4: MANAGER PAGES ✅
-// ============================================
+// Manager Pages
 import { Dashboard as ManagerDashboard } from './pages/manager/Dashboard';
 import { ReviewApplications } from './pages/manager/ReviewApplications';
 
-// ============================================
-// PHASE 5: AUDITOR PAGES ✅
-// ============================================
+// Auditor Pages
 import { Dashboard as AuditorDashboard } from './pages/auditor/Dashboard';
 
-// ============================================
-// PHASE 6: ADMIN PAGES ✅
-// ============================================
+// Admin Pages
 import { Dashboard as AdminDashboard } from './pages/admin/Dashboard';
 import { Users } from './pages/admin/Users';
 import { Loans as AdminLoans } from './pages/admin/Loans';
@@ -63,9 +55,7 @@ function App() {
         <QueryProvider>
           <ToastProvider>
             <Routes>
-              {/* ============================================
-                  PHASE 1: PUBLIC ROUTES ✅
-                  ============================================ */}
+              {/* Public Routes */}
               <Route element={<PublicLayout />}>
                 <Route path={ROUTES.HOME} element={<Home />} />
                 <Route path={ROUTES.ABOUT} element={<About />} />
@@ -77,9 +67,7 @@ function App() {
                 <Route path="/apply" element={<Apply />} />
               </Route>
 
-              {/* ============================================
-                  PHASE 2: AUTH ROUTES ✅
-                  ============================================ */}
+              {/* Auth Routes */}
               <Route element={<AuthLayout />}>
                 <Route path={ROUTES.LOGIN} element={<Login />} />
                 <Route path={ROUTES.REGISTER} element={<Register />} />
@@ -88,20 +76,20 @@ function App() {
                 <Route path={ROUTES.UNAUTHORIZED} element={<Unauthorized />} />
               </Route>
 
-              {/* ============================================
-                  PHASE 3: BORROWER ROUTES ✅
-                  ============================================ */}
+              {/* Borrower Routes */}
               <Route element={<ProtectedRoute allowedRoles={['borrower']} />}>
                 <Route element={<AppLayout />}>
                   <Route path={ROUTES.DASHBOARD} element={<BorrowerDashboard />} />
                   <Route path="/loan-application" element={<LoanApplication />} />
                   <Route path="/my-loans" element={<MyLoans />} />
+                  <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/settings" element={<Settings />} />
                 </Route>
               </Route>
 
-              {/* ============================================
-                  PHASE 4: MANAGER ROUTES ✅
-                  ============================================ */}
+              {/* Manager Routes */}
               <Route element={<ProtectedRoute allowedRoles={['manager']} />}>
                 <Route element={<AppLayout />}>
                   <Route path="/manager/dashboard" element={<ManagerDashboard />} />
@@ -109,18 +97,14 @@ function App() {
                 </Route>
               </Route>
 
-              {/* ============================================
-                  PHASE 5: AUDITOR ROUTES ✅
-                  ============================================ */}
+              {/* Auditor Routes */}
               <Route element={<ProtectedRoute allowedRoles={['auditor']} />}>
                 <Route element={<AppLayout />}>
                   <Route path="/auditor/dashboard" element={<AuditorDashboard />} />
                 </Route>
               </Route>
 
-              {/* ============================================
-                  PHASE 6: ADMIN ROUTES ✅
-                  ============================================ */}
+              {/* Admin Routes */}
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route element={<AppLayout />}>
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
