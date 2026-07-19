@@ -1,0 +1,8 @@
+export { heroBlock } from './hero-block'
+export { featuresBlock } from './features-block'
+export { ctaBlock } from './cta-block'
+export { testimonialBlock } from './testimonial-block'
+export { pricingBlock } from './pricing-block'
+export { faqBlock } from './faq-block'
+export { statsBlock } from './stats-block'
+export { contactBlock } from './contact-block'

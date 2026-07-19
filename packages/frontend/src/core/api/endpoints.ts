@@ -1,60 +1,120 @@
+const API_PREFIX = '/api/v1';
+
 export const endpoints = {
   auth: {
-    register: '/api/v1/auth/register',
-    login: '/api/v1/auth/login',
-    refresh: '/api/v1/auth/refresh',
-    logout: '/api/v1/auth/logout',
-    forgotPassword: '/api/v1/auth/forgot-password',
-    changePassword: '/api/v1/auth/change-password',
+    register: `${API_PREFIX}/auth/register`,
+    login: `${API_PREFIX}/auth/login`,
+    refresh: `${API_PREFIX}/auth/refresh`,
+    logout: `${API_PREFIX}/auth/logout`,
+    forgotPassword: `${API_PREFIX}/auth/forgot-password`,
+    changePassword: `${API_PREFIX}/auth/change-password`,
   },
+
+
   users: {
-    me: '/api/v1/users/me',
-    list: '/api/v1/users',
-    update: (id: string) => `/api/v1/users/${id}`,
-    updateStatus: (id: string) => `/api/v1/users/${id}/status`,
-    delete: (id: string) => `/api/v1/users/${id}`,
+    me: `${API_PREFIX}/users/me`,
+    list: `${API_PREFIX}/users`,
+
+    update: (userId: string) =>
+      `${API_PREFIX}/users/${userId}`,
+
+    updateStatus: (userId: string) =>
+      `${API_PREFIX}/users/${userId}/status`,
+
+    delete: (userId: string) =>
+      `${API_PREFIX}/users/${userId}`,
   },
+
+
   wallets: {
-    create: '/api/v1/wallets',
-    me: '/api/v1/wallets/me',
-    balance: '/api/v1/wallets/me/balance',
-    fund: '/api/v1/wallets/me/fund',
-    withdraw: '/api/v1/wallets/me/withdraw',
+    create: `${API_PREFIX}/wallets`,
+    me: `${API_PREFIX}/wallets/me`,
+    balance: `${API_PREFIX}/wallets/me/balance`,
+    fund: `${API_PREFIX}/wallets/me/fund`,
+    withdraw: `${API_PREFIX}/wallets/me/withdraw`,
   },
+
+
   transfers: {
-    create: '/api/v1/transfers',
-    list: '/api/v1/transfers',
-    get: (id: string) => `/api/v1/transfers/${id}`,
-    byReference: (reference: string) => `/api/v1/transfers/reference/${reference}`,
+    create: `${API_PREFIX}/transfers`,
+    list: `${API_PREFIX}/transfers`,
+
+    get: (transferId: string) =>
+      `${API_PREFIX}/transfers/${transferId}`,
+
+    byReference: (reference: string) =>
+      `${API_PREFIX}/transfers/reference/${reference}`,
   },
+
+
   transactions: {
-    create: '/api/v1/transactions',
-    list: '/api/v1/transactions',
-    get: (id: string) => `/api/v1/transactions/${id}`,
-    byReference: (reference: string) => `/api/v1/transactions/reference/${reference}`,
+    create: `${API_PREFIX}/transactions`,
+    list: `${API_PREFIX}/transactions`,
+
+    get: (transactionId: string) =>
+      `${API_PREFIX}/transactions/${transactionId}`,
+
+    byReference: (reference: string) =>
+      `${API_PREFIX}/transactions/reference/${reference}`,
   },
+
+
   loans: {
-    create: '/api/v1/loans',
-    list: '/api/v1/loans',
-    get: (id: string) => `/api/v1/loans/${id}`,
-    approve: (id: string) => `/api/v1/loans/${id}/approve`,
-    reject: (id: string) => `/api/v1/loans/${id}/reject`,
-    disburse: (id: string) => `/api/v1/loans/${id}/disburse`,
-    active: '/api/v1/loans/active/all',
+    create: `${API_PREFIX}/loans`,
+    list: `${API_PREFIX}/loans`,
+
+    get: (loanId: string) =>
+      `${API_PREFIX}/loans/${loanId}`,
+
+    approve: (loanId: string) =>
+      `${API_PREFIX}/loans/${loanId}/approve`,
+
+    reject: (loanId: string) =>
+      `${API_PREFIX}/loans/${loanId}/reject`,
+
+    disburse: (loanId: string) =>
+      `${API_PREFIX}/loans/${loanId}/disburse`,
+
+    active: `${API_PREFIX}/loans/active/all`,
   },
+
+
   notifications: {
-    list: '/api/v1/notifications',
-    unread: '/api/v1/notifications/unread',
-    markRead: (id: string) => `/api/v1/notifications/${id}/read`,
+    list: `${API_PREFIX}/notifications`,
+    unread: `${API_PREFIX}/notifications/unread`,
+
+    markRead: (notificationId: string) =>
+      `${API_PREFIX}/notifications/${notificationId}/read`,
   },
+
+
   reports: {
-    transactions: '/api/v1/reports/transactions',
-    loans: '/api/v1/reports/loans',
-    users: '/api/v1/reports/users',
+    transactions: `${API_PREFIX}/reports/transactions`,
+    loans: `${API_PREFIX}/reports/loans`,
+    users: `${API_PREFIX}/reports/users`,
   },
+
+
   admin: {
-    health: '/api/v1/admin/health',
-    stats: '/api/v1/admin/stats',
-    reconciliation: '/api/v1/admin/reconciliation',
+    health: `${API_PREFIX}/admin/health`,
+    stats: `${API_PREFIX}/admin/stats`,
+    reconciliation: `${API_PREFIX}/admin/reconciliation`,
   },
+
+
+  /**
+   * Future integrations
+   */
+
+  cms: {
+    pages: `${API_PREFIX}/cms/pages`,
+    content: `${API_PREFIX}/cms/content`,
+  },
+
+
+  communication: {
+    email: `${API_PREFIX}/communication/email`,
+    whatsapp: `${API_PREFIX}/communication/whatsapp`,
+  },
+
 } as const;

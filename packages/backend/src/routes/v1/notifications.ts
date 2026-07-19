@@ -1,47 +1,147 @@
+// src/routes/v1/notifications.ts
+
 import { Hono } from 'hono';
-import { authMiddleware } from '../../middleware/auth';
-import { 
-  getUserNotifications,
-  getUnreadNotifications,
-  markNotificationAsRead
-} from '../../services/notificationService';
 import { z } from 'zod';
 
+import { authMiddleware } from '../../middleware/auth';
+
+import {
+  getUserNotifications,
+  getUnreadNotifications,
+  markNotificationAsRead,
+} from '../../services/notificationService';
+
+import type { Bindings } from '../../types';
+
+
 const notificationIdValidator = z.object({
-  id: z.string().uuid('Invalid notification ID format'),
+  id: z.string().uuid(
+    'Invalid notification ID format'
+  ),
 });
 
-const notificationsRoutes = new Hono();
+const notificationsRoutes = new Hono<{
+  Bindings: Bindings;
+}>();
+// ===============================
+// Get My Notifications
+// ===============================
+notificationsRoutes.get(
+  '/',
+  authMiddleware,
+  async (c) => {
 
-// Get my notifications
-notificationsRoutes.get('/', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-  const notifications = await getUserNotifications(userId);
-  return c.json({
-    success: true,
-    data: notifications,
-  });
-});
+    const user =
+      c.get('user');
+    const notifications =
+      await getUserNotifications(
+        user.sub
+      );
+    return c.json({
+      success: true,
+      data: notifications,
+    });
+  }
+);
 
-// Get unread notifications
-notificationsRoutes.get('/unread', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-  const notifications = await getUnreadNotifications(userId);
-  return c.json({
-    success: true,
-    data: notifications,
-  });
-});
+// ===============================
+// Get Unread Notifications
+// ===============================
+notificationsRoutes.get(
+  '/unread',
+  authMiddleware,
+  async (c) => {
 
-// Mark notification as read
-notificationsRoutes.patch('/:id/read', authMiddleware, async (c) => {
-  const { id } = c.req.param();
-  notificationIdValidator.parse({ id });
-  await markNotificationAsRead(id);
-  return c.json({
-    success: true,
-    message: 'Notification marked as read',
-  });
-});
+    const user =
+      c.get('user');
+
+    const notifications =
+      await getUnreadNotifications(
+        user.sub
+      );
+
+    return c.json({
+      success: true,
+      data: notifications,
+    });
+  }
+);
+
+// ===============================
+// Mark Notification As Read
+// ===============================
+notificationsRoutes.patch(
+  '/:id/read',
+  authMiddleware,
+  async (c) => {
+
+    const { id } =
+      c.req.param();
+
+
+    notificationIdValidator.parse({
+      id,
+    });
+    await markNotificationAsRead(
+      id
+    );
+    return c.json({
+      success: true,
+      message:
+        'Notification marked as read',
+    });
+  }
+);
+
 
 export default notificationsRoutes;
+
+
+
+// import { Hono } from 'hono';
+// import { authMiddleware } from '../../middleware/auth';
+// import { 
+//   getUserNotifications,
+//   getUnreadNotifications,
+//   markNotificationAsRead
+// } from '../../services/notificationService';
+// import { z } from 'zod';
+
+// const notificationIdValidator = z.object({
+//   id: z.string().uuid('Invalid notification ID format'),
+// });
+
+// const notificationsRoutes = new Hono();
+
+// // Get my notifications
+// notificationsRoutes.get('/', authMiddleware, async (c) => {
+//   const userId = c.get('userId');
+//   const notifications = await getUserNotifications(userId);
+//   return c.json({
+//     success: true,
+//     data: notifications,
+//   });
+// });
+
+// // Get unread notifications
+// notificationsRoutes.get('/unread', authMiddleware, async (c) => {
+//   const userId = c.get('userId');
+//   const notifications = await getUnreadNotifications(userId);
+//   return c.json({
+//     success: true,
+//     data: notifications,
+//   });
+// });
+
+// // Mark notification as read
+// notificationsRoutes.patch('/:id/read', authMiddleware, async (c) => {
+//   const { id } = c.req.param();
+//   notificationIdValidator.parse({ id });
+//   await markNotificationAsRead(id);
+//   return c.json({
+//     success: true,
+//     message: 'Notification marked as read',
+//   });
+// });
+
+// export default notificationsRoutes;

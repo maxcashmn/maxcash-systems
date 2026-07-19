@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Loader } from '../../components/ui/Loader';
+import { Badge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../core/hooks/useAuth';
 import { useToast } from '../../core/hooks/useToast';
 import { useApi } from '../../core/hooks/useApi';
@@ -8,6 +10,19 @@ import { userApi } from '../../core/api/userApi';
 import { loanApi } from '../../core/api/loanApi';
 import { transactionApi } from '../../core/api/transactionApi';
 import { formatCurrency } from '../../core/utils/formatters';
+
+// CMS Components - Reusable
+import {
+  AnnouncementsSection,
+  BlogPostsSection,
+  PagesSection,
+  LoanProductsSection,
+  HelpArticlesSection,
+  FAQsSection,
+  LegalDocumentsSection,
+  TestimonialsSection,
+  CMSSummarySection,
+} from '../../components/cms';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -57,7 +72,9 @@ export const Dashboard: React.FC = () => {
     loadData();
   }, []);
 
-  if (usersLoading || loansLoading || transactionsLoading) {
+  const isLoading = usersLoading || loansLoading || transactionsLoading;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader size="lg" />
@@ -66,60 +83,81 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-0 pb-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-gray-600 text-sm sm:text-base">Welcome back, {user?.firstName}! Full system access.</p>
+        </div>
+        <Badge variant="outline" className="self-start sm:self-auto text-xs sm:text-sm">
+          🔑 Admin
+        </Badge>
+      </div>
+
+      {/* CMS Announcements */}
+      <AnnouncementsSection />
+
+      {/* Backend Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="p-4">
+          <p className="text-xs sm:text-sm text-gray-500">Total Users</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs sm:text-sm text-gray-500">Total Loans</p>
+          <p className="text-xl sm:text-2xl font-bold text-primary-600">{stats.totalLoans}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs sm:text-sm text-gray-500">Total Transactions</p>
+          <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.totalTransactions}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs sm:text-sm text-gray-500">Total Amount</p>
+          <p className="text-xl sm:text-2xl font-bold text-green-600">{formatCurrency(stats.totalAmount)}</p>
+        </Card>
+      </div>
+
+      {/* CMS Content Sections - Admin Full Access */}
+      <CMSSummarySection />
+      <PagesSection />
+      <BlogPostsSection />
+      <LoanProductsSection />
+      <HelpArticlesSection />
+      <FAQsSection />
+      <LegalDocumentsSection />
+      <TestimonialsSection />
+
+      {/* Quick Actions */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {user?.firstName}! Manage the entire system.</p>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+          <span>⚡</span> Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Button onClick={() => window.location.href = '/admin/users'} className="w-full">
+            👤 Users
+          </Button>
+          <Button onClick={() => window.location.href = '/admin/loans'} className="w-full">
+            📋 Loans
+          </Button>
+          <Button onClick={() => window.location.href = '/admin/audit-logs'} className="w-full">
+            📊 Audit
+          </Button>
+          <Button onClick={() => window.location.href = '/admin/cms'} className="w-full">
+            📝 CMS
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <p className="text-sm text-gray-500">Total Users</p>
-          <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-gray-500">Total Loans</p>
-          <p className="text-2xl font-bold text-primary-600">{stats.totalLoans}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-gray-500">Total Transactions</p>
-          <p className="text-2xl font-bold text-blue-600">{stats.totalTransactions}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-gray-500">Total Amount</p>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(stats.totalAmount)}</p>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-2">
-            <button onClick={() => window.location.href = '/admin/users'} className="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm">
-              👤 Manage Users
-            </button>
-            <button onClick={() => window.location.href = '/admin/loans'} className="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm">
-              📋 Manage Loans
-            </button>
-            <button onClick={() => window.location.href = '/admin/audit-logs'} className="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm">
-              📊 View Audit Logs
-            </button>
+      {/* Footer */}
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+          <p>© 2026 MaxCash Systems. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <span>Version 1.0.0</span>
+            <Badge variant="outline" className="text-[10px]">✅ System Online</Badge>
           </div>
-        </Card>
-
-        <Card>
-          <h3 className="font-semibold text-gray-900 mb-4">System Info</h3>
-          <div className="space-y-1 text-sm">
-            <p><span className="text-gray-500">Environment:</span> Production</p>
-            <p><span className="text-gray-500">Version:</span> 1.0.0</p>
-            <p><span className="text-gray-500">Status:</span> <span className="text-green-600">✅ Online</span></p>
-          </div>
-        </Card>
-
-        <Card>
-          <h3 className="font-semibold text-gray-900 mb-4">Recent Activity</h3>
-          <p className="text-sm text-gray-500">No recent activity to display.</p>
-        </Card>
+        </div>
       </div>
     </div>
   );

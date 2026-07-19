@@ -1,0 +1,6 @@
+export { termsOfService } from './terms-of-service'
+export { privacyPolicy } from './privacy-policy'
+export { kycPolicy } from './kyc-policy'
+export { amlPolicy } from './aml-policy'
+export { loanAgreement } from './loan-agreement'
+export { userAgreement } from './user-agreement'

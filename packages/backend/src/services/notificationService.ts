@@ -1,18 +1,31 @@
+// src/services/notificationService.ts
+
 import { NotificationRepository } from '../repositories/notificationRepository';
 import { generateId } from '../utils/helpers';
-import { sendEmail, sendWelcomeEmail, sendLoanApprovedEmail } from '../adapters/emailjs.adapter';
+
+import { sendEmail } from '../adapters/emailjs.adapter';
 import { sendWhatsAppMessage } from '../adapters/whatsapp.adapter';
 
-const notificationRepo = new NotificationRepository();
+const notificationRepo =
+  new NotificationRepository();
 
-export async function createNotification(data: {
+interface CreateNotificationData {
   userId: string;
   type: string;
   channel: string;
   subject: string;
   content: string;
-}) {
-  return await notificationRepo.create({
+}
+
+
+// ===============================
+// Create Notification
+// ===============================
+
+export async function createNotification(
+  data: CreateNotificationData
+) {
+  return notificationRepo.create({
     id: generateId(),
     user_id: data.userId,
     type: data.type,
@@ -23,48 +36,150 @@ export async function createNotification(data: {
   });
 }
 
-export async function sendNotification(notificationId: string) {
-  const notification = await notificationRepo.findById(notificationId);
+
+// ===============================
+// Send Notification
+// ===============================
+
+export async function sendNotification(
+  notificationId: string
+) {
+  const notification =
+    await notificationRepo.findById(
+      notificationId
+    );
+
   if (!notification) {
-    throw new Error('Notification not found');
+    throw new Error(
+      'Notification not found'
+    );
   }
 
   try {
-    if (notification.channel === 'email') {
-      await sendEmail({
-        to: notification.user_id,
-        subject: notification.subject,
-        html: notification.content,
-      });
-    } else if (notification.channel === 'whatsapp') {
-      await sendWhatsAppMessage({
-        to: notification.user_id,
-        message: notification.content,
-      });
+    switch (notification.channel) {
+
+      case 'email':
+        await sendEmail({
+          params: {
+            to_email:
+              notification.user_id,
+
+            subject:
+              notification.subject,
+
+            message:
+              notification.content,
+          },
+        });
+        break;
+
+
+      case 'whatsapp':
+        await sendWhatsAppMessage({
+          to:
+            notification.user_id,
+
+          message:
+            notification.content,
+        });
+        break;
+
+
+      default:
+        throw new Error(
+          `Unsupported notification channel: ${notification.channel}`
+        );
     }
 
-    await notificationRepo.markAsSent(notificationId);
-    return { success: true };
+
+    await notificationRepo.markAsSent(
+      notificationId
+    );
+
+
+    return {
+      success: true,
+    };
+
   } catch (error) {
-    console.error('Failed to send notification:', error);
-    return { success: false, error };
+
+    console.error(
+      'Failed to send notification:',
+      error
+    );
+
+
+    return {
+      success: false,
+      error,
+    };
   }
 }
 
-export async function sendWelcomeNotification(userId: string, email: string, name: string) {
-  const emailNotification = await createNotification({
-    userId,
-    type: 'welcome',
-    channel: 'email',
-    subject: 'Welcome to MaxCash!',
-    content: `Welcome ${name}! Your account has been created.`,
+
+// ===============================
+// Welcome Notification
+// ===============================
+
+export async function sendWelcomeNotification(
+  userId: string,
+  email: string,
+  name: string
+) {
+
+  const notification =
+    await createNotification({
+
+      userId,
+
+      type:
+        'welcome',
+
+      channel:
+        'email',
+
+      subject:
+        'Welcome to MaxCash',
+
+      content:
+        `Welcome ${name}! Your account has been created.`,
+    });
+
+
+  await sendEmail({
+
+    templateId:
+      'welcome_message',
+
+    params: {
+
+      to_email:
+        email,
+
+      user_name:
+        name,
+
+      subject:
+        'Welcome to MaxCash',
+    },
+
   });
 
-  await sendWelcomeEmail(email, name);
-  await notificationRepo.markAsSent(emailNotification.id);
 
-  return { success: true };
+  await notificationRepo.markAsSent(
+    notification.id
+  );
+
+
+  return {
+    success: true,
+  };
 }
+
+
+// ===============================
+// Loan Approved Notification
+// ===============================
 
 export async function sendLoanApprovedNotification(
   userId: string,
@@ -73,29 +188,97 @@ export async function sendLoanApprovedNotification(
   amount: number,
   loanId: string
 ) {
-  const notification = await createNotification({
-    userId,
-    type: 'loan_approved',
-    channel: 'email',
-    subject: 'Loan Approved!',
-    content: `Congratulations! Your loan of $${amount} has been approved.`,
+
+  const notification =
+    await createNotification({
+
+      userId,
+
+      type:
+        'loan_approved',
+
+      channel:
+        'email',
+
+      subject:
+        'Loan Approved',
+
+      content:
+        `Congratulations! Your loan of $${amount} has been approved.`,
+    });
+
+
+
+  await sendEmail({
+
+    templateId:
+      'loan_approved',
+
+    params: {
+
+      to_email:
+        email,
+
+      user_name:
+        name,
+
+      loan_amount:
+        amount,
+
+      loan_id:
+        loanId,
+
+      subject:
+        'Loan Approved',
+    },
+
   });
 
-  await sendLoanApprovedEmail(email, name, amount, loanId);
-  await notificationRepo.markAsSent(notification.id);
 
-  return { success: true };
+
+  await notificationRepo.markAsSent(
+    notification.id
+  );
+
+
+  return {
+    success: true,
+  };
 }
 
-export async function getUserNotifications(userId: string) {
-  return await notificationRepo.findByUserId(userId);
+
+// ===============================
+// Queries
+// ===============================
+
+export async function getUserNotifications(
+  userId: string
+) {
+  return notificationRepo.findByUserId(
+    userId
+  );
 }
 
-export async function getUnreadNotifications(userId: string) {
-  return await notificationRepo.findUnreadByUserId(userId);
+
+export async function getUnreadNotifications(
+  userId: string
+) {
+  return notificationRepo.findUnreadByUserId(
+    userId
+  );
 }
 
-export async function markNotificationAsRead(notificationId: string) {
-  await notificationRepo.markAsRead(notificationId);
-  return { success: true };
+
+export async function markNotificationAsRead(
+  notificationId: string
+) {
+
+  await notificationRepo.markAsRead(
+    notificationId
+  );
+
+
+  return {
+    success: true,
+  };
 }

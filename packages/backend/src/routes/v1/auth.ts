@@ -1,199 +1,266 @@
 import { Hono } from 'hono';
-import { 
-  loginValidator, 
-  registerValidator, 
+
+import {
+  loginValidator,
+  registerValidator,
   refreshTokenValidator,
-  resetPasswordValidator,
-  updatePasswordValidator
+  updatePasswordValidator,
+  verifyEmailValidator,
+  resendVerificationValidator,
 } from '../../validators';
-import { 
-  registerUser, 
-  loginUser, 
-  refreshToken, 
+
+import {
+  registerUser,
+  loginUser,
+  refreshToken,
   logoutUser,
-  changePassword 
+  changePassword,
+  verifyEmail,
+  resendVerificationEmail,
 } from '../../services/authService';
+
 import { authMiddleware } from '../../middleware/auth';
 
-const authRoutes = new Hono();
+import type { Bindings } from '../../types';
 
+const authRoutes = new Hono<{ Bindings: Bindings }>();
+
+
+// ===============================
 // Register
+// ===============================
 authRoutes.post('/register', async (c) => {
-  const body = await c.req.json();
-  const validated = registerValidator.parse(body);
-  
-  // ✅ Pass all fields including role to registerUser
-  const result = await registerUser({
-    email: validated.email,
-    password: validated.password,
-    firstName: validated.firstName,
-    lastName: validated.lastName,
-    phoneNumber: validated.phoneNumber,
-    role: validated.role, // ✅ Explicitly pass the role
-  });
-  
-  return c.json({
-    success: true,
-    message: 'Registration successful',
-    data: result,
-  }, 201);
-});
 
-// Login
-authRoutes.post('/login', async (c) => {
-  const body = await c.req.json();
-  const validated = loginValidator.parse(body);
-  const result = await loginUser(validated.email, validated.password);
-  return c.json({
-    success: true,
-    message: 'Login successful',
-    data: result,
-  });
-});
+  const env = c.env;
 
-// Refresh Token
-authRoutes.post('/refresh', async (c) => {
   const body = await c.req.json();
-  const validated = refreshTokenValidator.parse(body);
-  const result = await refreshToken(validated.refreshToken);
-  return c.json({
-    success: true,
-    message: 'Token refreshed successfully',
-    data: result,
-  });
-});
 
-// Logout (Protected)
-authRoutes.post('/logout', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-  await logoutUser(userId);
-  return c.json({
-    success: true,
-    message: 'Logout successful',
-  });
-});
+  const data =
+    registerValidator.parse(body);
 
-// Change Password (Protected)
-authRoutes.post('/change-password', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-  const body = await c.req.json();
-  const validated = updatePasswordValidator.parse(body);
-  await changePassword(
-    userId,
-    validated.currentPassword,
-    validated.newPassword
+
+  const result =
+    await registerUser(
+      env,
+      {
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
+        role: data.role,
+      }
+    );
+
+
+  return c.json(
+    {
+      success: true,
+      message:
+        'Registration successful. Please verify your email.',
+      data: result,
+    },
+    201
   );
-  return c.json({
-    success: true,
-    message: 'Password changed successfully',
-  });
 });
 
-// Forgot Password (Reset Request)
-authRoutes.post('/forgot-password', async (c) => {
-  const body = await c.req.json();
-  resetPasswordValidator.parse(body);
-  // TODO: Implement password reset email
+
+
+// ===============================
+// Verify Email
+// ===============================
+authRoutes.post('/verify-email', async (c) => {
+
+  const env = c.env;
+
+  const body =
+    await c.req.json();
+
+
+  const data =
+    verifyEmailValidator.parse(body);
+
+
+  const result =
+    await verifyEmail(
+      env,
+      data.token
+    );
+
+
   return c.json({
     success: true,
-    message: 'Password reset email sent if account exists',
+    message:
+      'Email verified successfully.',
+    data: result,
   });
+
 });
+
+
+
+// ===============================
+// Resend Verification
+// ===============================
+authRoutes.post(
+  '/resend-verification',
+  async (c) => {
+
+    const env = c.env;
+
+    const body =
+      await c.req.json();
+
+
+    const data =
+      resendVerificationValidator.parse(body);
+
+
+    await resendVerificationEmail(
+      env,
+      data.email
+    );
+
+
+    return c.json({
+      success: true,
+      message:
+        'Verification email sent successfully.',
+    });
+
+  }
+);
+
+
+
+// ===============================
+// Login
+// ===============================
+authRoutes.post('/login', async (c) => {
+
+  const body =
+    await c.req.json();
+
+
+  const data =
+    loginValidator.parse(body);
+
+
+  const result =
+    await loginUser(
+      data.email,
+      data.password
+    );
+
+
+  return c.json({
+    success: true,
+    message:
+      'Login successful.',
+    data: result,
+  });
+
+});
+
+
+
+// ===============================
+// Refresh Token
+// ===============================
+authRoutes.post(
+  '/refresh-token',
+  async (c) => {
+
+    const body =
+      await c.req.json();
+
+
+    const data =
+      refreshTokenValidator.parse(body);
+
+
+    const result =
+      await refreshToken(
+        data.refreshToken
+      );
+
+
+    return c.json({
+      success: true,
+      data: result,
+    });
+
+  }
+);
+
+
+
+// ===============================
+// Logout
+// ===============================
+authRoutes.post(
+  '/logout',
+  authMiddleware,
+  async (c) => {
+
+
+    const user =
+      c.get('user');
+
+
+    await logoutUser(
+      user.sub
+    );
+
+
+    return c.json({
+      success: true,
+      message:
+        'Logged out successfully.',
+    });
+
+  }
+);
+
+
+
+// ===============================
+// Change Password
+// ===============================
+authRoutes.post(
+  '/change-password',
+  authMiddleware,
+  async (c) => {
+
+
+    const user =
+      c.get('user');
+
+
+    const body =
+      await c.req.json();
+
+
+    const data =
+      updatePasswordValidator.parse(body);
+
+
+    await changePassword(
+      user.sub,
+      data.currentPassword,
+      data.newPassword
+    );
+
+
+    return c.json({
+      success: true,
+      message:
+        'Password updated successfully.',
+    });
+
+  }
+);
+
+
 
 export default authRoutes;
-
-
-
-// import { Hono } from 'hono';
-// import { 
-//   loginValidator, 
-//   registerValidator, 
-//   refreshTokenValidator,
-//   resetPasswordValidator,
-//   updatePasswordValidator
-// } from '../../validators';
-// import { 
-//   registerUser, 
-//   loginUser, 
-//   refreshToken, 
-//   logoutUser,
-//   changePassword 
-// } from '../../services/authService';
-// import { authMiddleware } from '../../middleware/auth';
-
-// const authRoutes = new Hono();
-
-// // Register
-// authRoutes.post('/register', async (c) => {
-//   const body = await c.req.json();
-//   const validated = registerValidator.parse(body);
-//   const result = await registerUser(validated);
-//   return c.json({
-//     success: true,
-//     message: 'Registration successful',
-//     data: result,
-//   }, 201);
-// });
-
-// // Login
-// authRoutes.post('/login', async (c) => {
-//   const body = await c.req.json();
-//   const validated = loginValidator.parse(body);
-//   const result = await loginUser(validated.email, validated.password);
-//   return c.json({
-//     success: true,
-//     message: 'Login successful',
-//     data: result,
-//   });
-// });
-
-// // Refresh Token
-// authRoutes.post('/refresh', async (c) => {
-//   const body = await c.req.json();
-//   const validated = refreshTokenValidator.parse(body);
-//   const result = await refreshToken(validated.refreshToken);
-//   return c.json({
-//     success: true,
-//     message: 'Token refreshed successfully',
-//     data: result,
-//   });
-// });
-
-// // Logout (Protected)
-// authRoutes.post('/logout', authMiddleware, async (c) => {
-//   const userId = c.get('userId');
-//   await logoutUser(userId);
-//   return c.json({
-//     success: true,
-//     message: 'Logout successful',
-//   });
-// });
-
-// // Change Password (Protected)
-// authRoutes.post('/change-password', authMiddleware, async (c) => {
-//   const userId = c.get('userId');
-//   const body = await c.req.json();
-//   const validated = updatePasswordValidator.parse(body);
-//   await changePassword(
-//     userId,
-//     validated.currentPassword,
-//     validated.newPassword
-//   );
-//   return c.json({
-//     success: true,
-//     message: 'Password changed successfully',
-//   });
-// });
-
-// // Forgot Password (Reset Request)
-// authRoutes.post('/forgot-password', async (c) => {
-//   const body = await c.req.json();
-//   resetPasswordValidator.parse(body);
-//   // TODO: Implement password reset email
-//   return c.json({
-//     success: true,
-//     message: 'Password reset email sent if account exists',
-//   });
-// });
-
-// export default authRoutes;

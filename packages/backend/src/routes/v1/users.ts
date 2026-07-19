@@ -1,98 +1,341 @@
+// src/routes/v1/users.ts
+
 import { Hono } from 'hono';
-import { 
-  updateProfileValidator, 
+
+import {
+  updateProfileValidator,
   updateUserStatusValidator,
   listUsersValidator,
-  userIdValidator
+  userIdValidator,
 } from '../../validators';
-import { 
-  getUserById, 
-  updateUserProfile, 
+
+import {
+  getUserById,
+  updateUserProfile,
   updateUserStatus,
   deleteUser,
-  listUsers
+  listUsers,
 } from '../../services/userService';
+
 import { authMiddleware } from '../../middleware/auth';
 import { requireRole } from '../../middleware/rbac';
 
-const usersRoutes = new Hono();
+import type { Bindings } from '../../types';
 
-// Get current user profile
-usersRoutes.get('/me', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-  const user = await getUserById(userId);
-  return c.json({
-    success: true,
-    data: user,
-  });
-});
+const usersRoutes = new Hono<{
+  Bindings: Bindings;
+}>();
 
-// Update current user profile
-usersRoutes.put('/me', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-  const body = await c.req.json();
-  const validated = updateProfileValidator.parse(body);
-  const user = await updateUserProfile(userId, validated);
-  return c.json({
-    success: true,
-    message: 'Profile updated successfully',
-    data: user,
-  });
-});
+// ===============================
+// Get Current User Profile
+// ===============================
+usersRoutes.get(
+  '/me',
+  authMiddleware,
+  async (c) => {
 
-// List users (Admin only)
-usersRoutes.get('/', authMiddleware, requireRole('admin'), async (c) => {
-  const query = c.req.query();
-  const validated = listUsersValidator.parse({
-    page: query.page ? parseInt(query.page) : 1,
-    limit: query.limit ? parseInt(query.limit) : 10,
-    role: query.role,
-    status: query.status,
-  });
-  const result = await listUsers(
-    validated.page,
-    validated.limit,
-    { role: validated.role, status: validated.status }
-  );
-  return c.json({
-    success: true,
-    data: result,
-  });
-});
+    const user =
+      c.get('user');
 
-// Get user by ID (Admin only)
-usersRoutes.get('/:id', authMiddleware, requireRole('admin'), async (c) => {
-  const { id } = c.req.param();
-  userIdValidator.parse({ id });
-  const user = await getUserById(id);
-  return c.json({
-    success: true,
-    data: user,
-  });
-});
+    const profile =
+      await getUserById(user.sub);
 
-// Update user status (Admin only)
-usersRoutes.patch('/:id/status', authMiddleware, requireRole('admin'), async (c) => {
-  const { id } = c.req.param();
-  userIdValidator.parse({ id });
-  const body = await c.req.json();
-  const validated = updateUserStatusValidator.parse(body);
-  await updateUserStatus(id, validated.status);
-  return c.json({
-    success: true,
-    message: 'User status updated successfully',
-  });
-});
+    return c.json({
+      success: true,
+      data: profile,
+    });
+  }
+);
 
-// Delete user (Admin only)
-usersRoutes.delete('/:id', authMiddleware, requireRole('admin'), async (c) => {
-  const { id } = c.req.param();
-  userIdValidator.parse({ id });
-  await deleteUser(id);
-  return c.json({
-    success: true,
-    message: 'User deleted successfully',
-  });
-});
+// ===============================
+// Update Current User Profile
+// ===============================
+usersRoutes.put(
+  '/me',
+  authMiddleware,
+  async (c) => {
+
+    const user =
+      c.get('user');
+
+    const body =
+      await c.req.json();
+
+    const validated =
+      updateProfileValidator.parse(body);
+
+
+    const updatedUser =
+      await updateUserProfile(
+        user.sub,
+        validated
+      );
+
+
+    return c.json({
+      success: true,
+      message:
+        'Profile updated successfully',
+      data: updatedUser,
+    });
+  }
+);
+
+// ===============================
+// List Users (Admin)
+// ===============================
+usersRoutes.get(
+  '/',
+  authMiddleware,
+  requireRole('admin'),
+  async (c) => {
+
+    const query =
+      c.req.query();
+
+
+    const validated =
+      listUsersValidator.parse({
+
+        page:
+          query.page
+            ? Number(query.page)
+            : 1,
+
+        limit:
+          query.limit
+            ? Number(query.limit)
+            : 10,
+
+        role:
+          query.role,
+
+        status:
+          query.status,
+      });
+
+
+    const result =
+      await listUsers(
+        validated.page,
+        validated.limit,
+        {
+          role:
+            validated.role,
+
+          status:
+            validated.status,
+        }
+      );
+
+
+    return c.json({
+      success: true,
+      data: result,
+    });
+  }
+);
+
+
+// ===============================
+// Get User By ID (Admin)
+// ===============================
+usersRoutes.get(
+  '/:id',
+  authMiddleware,
+  requireRole('admin'),
+  async (c) => {
+
+    const { id } =
+      c.req.param();
+
+
+    userIdValidator.parse({
+      id,
+    });
+
+
+    const user =
+      await getUserById(id);
+
+
+    return c.json({
+      success: true,
+      data: user,
+    });
+  }
+);
+
+
+// ===============================
+// Update User Status (Admin)
+// ===============================
+usersRoutes.patch(
+  '/:id/status',
+  authMiddleware,
+  requireRole('admin'),
+  async (c) => {
+
+    const { id } =
+      c.req.param();
+
+
+    userIdValidator.parse({
+      id,
+    });
+
+
+    const body =
+      await c.req.json();
+
+    const validated =
+      updateUserStatusValidator.parse(body);
+
+
+    await updateUserStatus(
+      id,
+      validated.status
+    );
+
+
+    return c.json({
+      success: true,
+      message:
+        'User status updated successfully',
+    });
+  }
+);
+
+
+// ===============================
+// Delete User (Admin)
+// ===============================
+usersRoutes.delete(
+  '/:id',
+  authMiddleware,
+  requireRole('admin'),
+  async (c) => {
+
+    const { id } =
+      c.req.param();
+
+
+    userIdValidator.parse({
+      id,
+    });
+
+
+    await deleteUser(id);
+
+
+    return c.json({
+      success: true,
+      message:
+        'User deleted successfully',
+    });
+  }
+);
+
 
 export default usersRoutes;
+
+
+
+// import { Hono } from 'hono';
+// import { 
+//   updateProfileValidator, 
+//   updateUserStatusValidator,
+//   listUsersValidator,
+//   userIdValidator
+// } from '../../validators';
+// import { 
+//   getUserById, 
+//   updateUserProfile, 
+//   updateUserStatus,
+//   deleteUser,
+//   listUsers
+// } from '../../services/userService';
+// import { authMiddleware } from '../../middleware/auth';
+// import { requireRole } from '../../middleware/rbac';
+
+// const usersRoutes = new Hono();
+
+// // Get current user profile
+// usersRoutes.get('/me', authMiddleware, async (c) => {
+//   const userId = c.get('userId');
+//   const user = await getUserById(userId);
+//   return c.json({
+//     success: true,
+//     data: user,
+//   });
+// });
+
+// // Update current user profile
+// usersRoutes.put('/me', authMiddleware, async (c) => {
+//   const userId = c.get('userId');
+//   const body = await c.req.json();
+//   const validated = updateProfileValidator.parse(body);
+//   const user = await updateUserProfile(userId, validated);
+//   return c.json({
+//     success: true,
+//     message: 'Profile updated successfully',
+//     data: user,
+//   });
+// });
+
+// // List users (Admin only)
+// usersRoutes.get('/', authMiddleware, requireRole('admin'), async (c) => {
+//   const query = c.req.query();
+//   const validated = listUsersValidator.parse({
+//     page: query.page ? parseInt(query.page) : 1,
+//     limit: query.limit ? parseInt(query.limit) : 10,
+//     role: query.role,
+//     status: query.status,
+//   });
+//   const result = await listUsers(
+//     validated.page,
+//     validated.limit,
+//     { role: validated.role, status: validated.status }
+//   );
+//   return c.json({
+//     success: true,
+//     data: result,
+//   });
+// });
+
+// // Get user by ID (Admin only)
+// usersRoutes.get('/:id', authMiddleware, requireRole('admin'), async (c) => {
+//   const { id } = c.req.param();
+//   userIdValidator.parse({ id });
+//   const user = await getUserById(id);
+//   return c.json({
+//     success: true,
+//     data: user,
+//   });
+// });
+
+// // Update user status (Admin only)
+// usersRoutes.patch('/:id/status', authMiddleware, requireRole('admin'), async (c) => {
+//   const { id } = c.req.param();
+//   userIdValidator.parse({ id });
+//   const body = await c.req.json();
+//   const validated = updateUserStatusValidator.parse(body);
+//   await updateUserStatus(id, validated.status);
+//   return c.json({
+//     success: true,
+//     message: 'User status updated successfully',
+//   });
+// });
+
+// // Delete user (Admin only)
+// usersRoutes.delete('/:id', authMiddleware, requireRole('admin'), async (c) => {
+//   const { id } = c.req.param();
+//   userIdValidator.parse({ id });
+//   await deleteUser(id);
+//   return c.json({
+//     success: true,
+//     message: 'User deleted successfully',
+//   });
+// });
+
+// export default usersRoutes;

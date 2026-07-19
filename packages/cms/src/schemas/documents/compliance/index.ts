@@ -1,0 +1,1 @@
+export { compliancePolicy } from './compliance-policy'

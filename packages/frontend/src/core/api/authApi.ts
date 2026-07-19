@@ -1,3 +1,120 @@
+// import { apiClient } from './client';
+// import { endpoints } from './endpoints';
+
+// // planned feature to add: verify email & resend verification
+// /**
+//  * Authentication request types
+//  */
+
+// export interface LoginData {
+//   email: string;
+//   password: string;
+// }
+
+
+// export interface RegisterData {
+//   email: string;
+//   password: string;
+//   firstName: string;
+//   lastName: string;
+//   phoneNumber?: string;
+//   role?: string;
+// }
+
+
+// export interface ChangePasswordData {
+//   currentPassword: string;
+//   newPassword: string;
+//   confirmPassword: string;
+// }
+
+
+// /**
+//  * Authentication API service
+//  *
+//  * Handles communication between
+//  * frontend and Cloudflare Worker auth endpoints.
+//  */
+// export const authApi = {
+
+//   /**
+//    * Register a new user.
+//    *
+//    * Default role:
+//    * borrower
+//    *
+//    * Role management will later
+//    * be controlled by backend permissions.
+//    */
+//   register: (data: RegisterData) =>
+//     apiClient.post(
+//       endpoints.auth.register,
+//       {
+//         ...data,
+//         role: data.role ?? 'borrower',
+//       }
+//     ),
+
+
+//   /**
+//    * Login existing user.
+//    */
+//   login: (data: LoginData) =>
+//     apiClient.post(
+//       endpoints.auth.login,
+//       data
+//     ),
+
+
+//   /**
+//    * Refresh expired access token.
+//    */
+//   refreshToken: (refreshToken: string) =>
+//     apiClient.post(
+//       endpoints.auth.refresh,
+//       {
+//         refreshToken,
+//       }
+//     ),
+
+
+//   /**
+//    * Logout current user session.
+//    */
+//   logout: () =>
+//     apiClient.post(
+//       endpoints.auth.logout
+//     ),
+
+
+//   /**
+//    * Request password reset email.
+//    */
+//   forgotPassword: (email: string) =>
+//     apiClient.post(
+//       endpoints.auth.forgotPassword,
+//       {
+//         email,
+//       }
+//     ),
+
+
+//   /**
+//    * Change authenticated user's password.
+//    */
+//   changePassword: (
+//     data: ChangePasswordData
+//   ) =>
+//     apiClient.post(
+//       endpoints.auth.changePassword,
+//       data
+//     ),
+// };
+
+
+// export default authApi;
+
+
 import { apiClient } from './client';
 import { endpoints } from './endpoints';
 
@@ -99,35 +216,3 @@ export const authApi = {
 };
 
 export default authApi;
-
-
-// import { apiClient } from './client';
-// import { endpoints } from './endpoints';
-
-// export interface LoginData {
-//   email: string;
-//   password: string;
-// }
-
-// export interface RegisterData {
-//   email: string;
-//   password: string;
-//   firstName: string;
-//   lastName: string;
-//   phoneNumber?: string;
-// }
-
-// export interface ChangePasswordData {
-//   currentPassword: string;
-//   newPassword: string;
-//   confirmPassword: string;
-// }
-
-// export const authApi = {
-//   register: (data: RegisterData) => apiClient.post(endpoints.auth.register, data),
-//   login: (data: LoginData) => apiClient.post(endpoints.auth.login, data),
-//   refreshToken: (refreshToken: string) => apiClient.post(endpoints.auth.refresh, { refreshToken }),
-//   logout: () => apiClient.post(endpoints.auth.logout),
-//   forgotPassword: (email: string) => apiClient.post(endpoints.auth.forgotPassword, { email }),
-//   changePassword: (data: ChangePasswordData) => apiClient.post(endpoints.auth.changePassword, data),
-// };

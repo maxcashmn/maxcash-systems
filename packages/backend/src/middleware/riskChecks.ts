@@ -1,4 +1,8 @@
-import { Context, Next } from 'hono';
+// src/middleware/riskChecks.ts
+
+import type { Context, MiddlewareHandler } from 'hono';
+
+import type { Env } from '../types';
 
 interface RiskCheckResult {
   passed: boolean;
@@ -8,21 +12,39 @@ interface RiskCheckResult {
 
 export class RiskChecker {
   private static instance: RiskChecker;
-  private suspiciousIPs: Set<string> = new Set();
-  private failedAttempts: Map<string, { count: number; firstAttempt: number }> = new Map();
+
+  private suspiciousIPs = new Set<string>();
+
+  private failedAttempts = new Map<
+    string,
+    {
+      count: number;
+      firstAttempt: number;
+    }
+  >();
 
   static getInstance(): RiskChecker {
     if (!RiskChecker.instance) {
       RiskChecker.instance = new RiskChecker();
     }
+
     return RiskChecker.instance;
   }
 
   async check(c: Context): Promise<RiskCheckResult> {
-    const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
-    const userAgent = c.req.header('user-agent') || '';
-    const score = this.calculateRiskScore(ip, userAgent);
-    
+    const ip =
+      c.req.header('cf-connecting-ip') ??
+      c.req.header('x-forwarded-for') ??
+      'unknown';
+
+    const userAgent =
+      c.req.header('user-agent') ?? '';
+
+    const score = this.calculateRiskScore(
+      ip,
+      userAgent
+    );
+
     if (this.suspiciousIPs.has(ip)) {
       return {
         passed: false,
@@ -30,7 +52,7 @@ export class RiskChecker {
         score,
       };
     }
-    
+
     if (score > 70) {
       return {
         passed: false,
@@ -38,46 +60,76 @@ export class RiskChecker {
         score,
       };
     }
-    
+
     return {
       passed: true,
       score,
     };
   }
 
-  private calculateRiskScore(ip: string, userAgent: string): number {
+  private calculateRiskScore(
+    ip: string,
+    userAgent: string
+  ): number {
     let score = 0;
-    
-    // Check for suspicious user agents (bots, scrapers)
-    const suspiciousAgents = ['bot', 'crawler', 'scraper', 'curl', 'wget'];
-    if (suspiciousAgents.some(agent => userAgent.toLowerCase().includes(agent))) {
+
+    const suspiciousAgents = [
+      'bot',
+      'crawler',
+      'scraper',
+      'curl',
+      'wget',
+    ];
+
+    if (
+      suspiciousAgents.some(agent =>
+        userAgent.toLowerCase().includes(agent)
+      )
+    ) {
       score += 30;
     }
-    
-    // Check for failed login attempts from this IP
-    const attempts = this.failedAttempts.get(ip);
+
+    const attempts =
+      this.failedAttempts.get(ip);
+
     if (attempts) {
-      const timeSinceFirst = Date.now() - attempts.firstAttempt;
-      if (timeSinceFirst < 60000 && attempts.count > 5) {
+      const elapsed =
+        Date.now() - attempts.firstAttempt;
+
+      if (
+        elapsed < 60000 &&
+        attempts.count > 5
+      ) {
         score += 40;
-      } else if (timeSinceFirst < 300000 && attempts.count > 20) {
+      } else if (
+        elapsed < 300000 &&
+        attempts.count > 20
+      ) {
         score += 60;
       }
     }
-    
+
     return Math.min(score, 100);
   }
 
   recordFailedAttempt(ip: string): void {
-    const existing = this.failedAttempts.get(ip);
+    const existing =
+      this.failedAttempts.get(ip);
+
     if (existing) {
       existing.count++;
+
       if (existing.count > 10) {
         this.suspiciousIPs.add(ip);
       }
-    } else {
-      this.failedAttempts.set(ip, { count: 1, firstAttempt: Date.now() });
+
+      return;
     }
+
+    this.failedAttempts.set(ip, {
+      count: 1,
+      firstAttempt: Date.now(),
+    });
   }
 
   clearSuspiciousIP(ip: string): void {
@@ -85,19 +137,133 @@ export class RiskChecker {
   }
 }
 
-export async function riskCheckMiddleware(c: Context, next: Next) {
+export const riskCheckMiddleware: MiddlewareHandler<Env> = async (
+  c,
+  next
+) => {
   const checker = RiskChecker.getInstance();
+
   const result = await checker.check(c);
-  
+
   if (!result.passed) {
-    return c.json({
-      success: false,
-      message: `Request blocked due to risk check: ${result.reason}`,
-      score: result.score,
-      timestamp: new Date().toISOString(),
-    }, 403);
+    return c.json(
+      {
+        success: false,
+        message: `Request blocked due to risk check: ${result.reason}`,
+        score: result.score,
+        timestamp: new Date().toISOString(),
+      },
+      403
+    );
   }
-  
+
   c.set('riskScore', result.score);
+
   await next();
-}
+};
+
+
+
+// import { Context, Next } from 'hono';
+
+// interface RiskCheckResult {
+//   passed: boolean;
+//   reason?: string;
+//   score: number;
+// }
+
+// export class RiskChecker {
+//   private static instance: RiskChecker;
+//   private suspiciousIPs: Set<string> = new Set();
+//   private failedAttempts: Map<string, { count: number; firstAttempt: number }> = new Map();
+
+//   static getInstance(): RiskChecker {
+//     if (!RiskChecker.instance) {
+//       RiskChecker.instance = new RiskChecker();
+//     }
+//     return RiskChecker.instance;
+//   }
+
+//   async check(c: Context): Promise<RiskCheckResult> {
+//     const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
+//     const userAgent = c.req.header('user-agent') || '';
+//     const score = this.calculateRiskScore(ip, userAgent);
+    
+//     if (this.suspiciousIPs.has(ip)) {
+//       return {
+//         passed: false,
+//         reason: 'IP address flagged as suspicious',
+//         score,
+//       };
+//     }
+    
+//     if (score > 70) {
+//       return {
+//         passed: false,
+//         reason: 'Risk score too high',
+//         score,
+//       };
+//     }
+    
+//     return {
+//       passed: true,
+//       score,
+//     };
+//   }
+
+//   private calculateRiskScore(ip: string, userAgent: string): number {
+//     let score = 0;
+    
+//     // Check for suspicious user agents (bots, scrapers)
+//     const suspiciousAgents = ['bot', 'crawler', 'scraper', 'curl', 'wget'];
+//     if (suspiciousAgents.some(agent => userAgent.toLowerCase().includes(agent))) {
+//       score += 30;
+//     }
+    
+//     // Check for failed login attempts from this IP
+//     const attempts = this.failedAttempts.get(ip);
+//     if (attempts) {
+//       const timeSinceFirst = Date.now() - attempts.firstAttempt;
+//       if (timeSinceFirst < 60000 && attempts.count > 5) {
+//         score += 40;
+//       } else if (timeSinceFirst < 300000 && attempts.count > 20) {
+//         score += 60;
+//       }
+//     }
+    
+//     return Math.min(score, 100);
+//   }
+
+//   recordFailedAttempt(ip: string): void {
+//     const existing = this.failedAttempts.get(ip);
+//     if (existing) {
+//       existing.count++;
+//       if (existing.count > 10) {
+//         this.suspiciousIPs.add(ip);
+//       }
+//     } else {
+//       this.failedAttempts.set(ip, { count: 1, firstAttempt: Date.now() });
+//     }
+//   }
+
+//   clearSuspiciousIP(ip: string): void {
+//     this.suspiciousIPs.delete(ip);
+//   }
+// }
+
+// export async function riskCheckMiddleware(c: Context, next: Next) {
+//   const checker = RiskChecker.getInstance();
+//   const result = await checker.check(c);
+  
+//   if (!result.passed) {
+//     return c.json({
+//       success: false,
+//       message: `Request blocked due to risk check: ${result.reason}`,
+//       score: result.score,
+//       timestamp: new Date().toISOString(),
+//     }, 403);
+//   }
+  
+//   c.set('riskScore', result.score);
+//   await next();
+// }

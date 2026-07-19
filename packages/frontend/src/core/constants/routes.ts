@@ -1,3 +1,7 @@
+// packages/frontend/src/core/routing/routes.ts
+// Remove: import { ROUTES } from '../constants/routes';
+
+// Define ROUTES directly here
 export const ROUTES = {
   // Public
   HOME: '/',
@@ -7,7 +11,11 @@ export const ROUTES = {
   LOAN_CALCULATOR: '/loan-calculator',
   FAQ: '/faq',
   CONTACT: '/contact',
+  TERMS: '/terms',
+  PRIVACY: '/privacy',
+  COOKIES: '/cookies',
   APPLY: '/apply',
+  APPLICATION_SUCCESS: '/application-success',
   
   // Auth
   LOGIN: '/login',
@@ -46,3 +54,9 @@ export const ROUTES = {
 } as const;
 
 export type Route = typeof ROUTES[keyof typeof ROUTES];
+
+// Then define your route arrays...
+export const publicRoutes = [
+  { path: ROUTES.HOME, label: 'Home' },
+  // ... rest of your routes
+];

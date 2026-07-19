@@ -4,18 +4,22 @@ export * from './database';
 export * from './email';
 export * from './whatsapp';
 
-import { appConfig } from './app';
-import { authConfig } from './auth';
-import { databaseConfig } from './database';
-import { emailConfig } from './email';
-import { whatsappConfig } from './whatsapp';
+import { getAppConfig } from './app';
+import { getAuthConfig } from './auth';
+import { getDatabaseConfig } from './database';
+import { getEmailConfig } from './email';
+import { getWhatsAppConfig } from './whatsapp';
 
-export const config = {
-  app: appConfig,
-  auth: authConfig,
-  database: databaseConfig,
-  email: emailConfig,
-  whatsapp: whatsappConfig,
-};
+import type { Bindings } from '../types';
 
-export type Config = typeof config;
+export function getConfig(env: Partial<Bindings> = {}) {
+  return {
+    app: getAppConfig(env),
+    auth: getAuthConfig(env),
+    database: getDatabaseConfig(env),
+    email: getEmailConfig(env),
+    whatsapp: getWhatsAppConfig(env),
+  };
+}
+
+export type Config = ReturnType<typeof getConfig>;

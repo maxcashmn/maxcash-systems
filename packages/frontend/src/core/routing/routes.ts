@@ -1,10 +1,17 @@
+// packages/frontend/src/core/constants/routes.ts
 export const ROUTES = {
   // Public
   HOME: '/',
   ABOUT: '/about',
   LOAN_PRODUCTS: '/loan-products',
+  LOAN_CALCULATOR: '/loan-calculator',
   FAQ: '/faq',
   CONTACT: '/contact',
+  TERMS: '/terms',
+  PRIVACY: '/privacy',      // ✅ Add this
+  COOKIES: '/cookies',      // ✅ Add this
+  APPLY: '/apply',
+  APPLICATION_SUCCESS: '/application-success',
   
   // Auth
   LOGIN: '/login',

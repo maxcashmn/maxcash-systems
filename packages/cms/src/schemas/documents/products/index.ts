@@ -1,0 +1,1 @@
+export { loanProduct } from './loan-product'
