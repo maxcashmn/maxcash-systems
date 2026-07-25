@@ -8,24 +8,33 @@ export function getDatabaseConfig(
   const getEnv = (
     key: keyof Bindings,
     fallback = ''
-  ): string =>
-    String(env[key] ?? process.env[key] ?? fallback);
+  ): string => {
+    if (env && env[key] !== undefined && env[key] !== null) {
+      return String(env[key]);
+    }
+    if (typeof process !== 'undefined' && process.env && process.env[key] !== undefined) {
+      return String(process.env[key]);
+    }
+    return String(fallback);
+  };
+
+  const getEnvNumber = (
+    key: keyof Bindings,
+    fallback: number
+  ): number => {
+    const val = getEnv(key, String(fallback));
+    return Number(val);
+  };
 
   return {
     url: getEnv('DATABASE_URL'),
 
     pool: {
-      max: Number(
-        process.env.DB_POOL_MAX ?? 10
-      ),
+      max: getEnvNumber('DB_POOL_MAX', 10),
 
-      idleTimeout: Number(
-        process.env.DB_IDLE_TIMEOUT ?? 30000
-      ),
+      idleTimeout: getEnvNumber('DB_IDLE_TIMEOUT', 30000),
 
-      connectionTimeout: Number(
-        process.env.DB_CONNECTION_TIMEOUT ?? 10000
-      ),
+      connectionTimeout: getEnvNumber('DB_CONNECTION_TIMEOUT', 10000),
     },
 
     ssl: {

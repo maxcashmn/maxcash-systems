@@ -149,7 +149,8 @@ authRoutes.post('/login', async (c) => {
   const result =
     await loginUser(
       data.email,
-      data.password
+      data.password,
+      c.env
     );
 
 
@@ -181,7 +182,8 @@ authRoutes.post(
 
     const result =
       await refreshToken(
-        data.refreshToken
+        data.refreshToken,
+        c.env
       );
 
 

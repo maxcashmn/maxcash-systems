@@ -33,7 +33,7 @@ export const authMiddleware: MiddlewareHandler<Env> = async (
 
   try {
     const payload =
-      await verifyJWT(token);
+      await verifyJWT(token, c.env);
 
     const user =
       mapAuthUser(payload);
@@ -62,7 +62,8 @@ export const optionalAuth: MiddlewareHandler<Env> = async (
     try {
       const payload =
         await verifyJWT(
-          authorization.slice(7)
+          authorization.slice(7),
+          c.env
         );
 
       const user =

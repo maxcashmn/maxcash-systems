@@ -1,29 +1,18 @@
 // src/routes/v1/transfers.ts
 
 import { Hono } from 'hono';
-
-import {
-  initiateTransferValidator,
-  transferIdValidator,
-  transferReferenceValidator,
-} from '../../validators';
-
 import {
   initiateTransfer,
   getTransferById,
-  getUserTransfers,
+  getBorrowerTransfers,      // Changed from getUserTransfers
   getTransferByReference,
 } from '../../services/transferService';
-
 import { authMiddleware } from '../../middleware/auth';
-
 import type { Bindings } from '../../types';
-
 
 const transfersRoutes = new Hono<{
   Bindings: Bindings;
 }>();
-
 
 // ===============================
 // Initiate Transfer
@@ -32,57 +21,33 @@ transfersRoutes.post(
   '/',
   authMiddleware,
   async (c) => {
+    const user = c.get('user');
+    const body = await c.req.json();
 
-    const user =
-      c.get('user');
+    const result = await initiateTransfer({
+      fromBorrowerId: user.sub,  // Changed from fromUserId
+      toBorrowerId: body.toBorrowerId,  // Changed from toUserId
+      amount: body.amount,
+      description: body.description,
+    });
 
-
-    const body =
-      await c.req.json();
-
-
-    const validated =
-      initiateTransferValidator.parse(body);
-
-
-    const transfer =
-      await initiateTransfer({
-        ...validated,
-        fromUserId:
-          user.sub,
-      });
-
-
-    return c.json(
-      {
-        success: true,
-        message:
-          'Transfer initiated successfully',
-        data: transfer,
-      },
-      201
-    );
+    return c.json({
+      success: true,
+      message: 'Transfer initiated successfully',
+      data: result,
+    });
   }
 );
 
-
 // ===============================
-// List My Transfers
+// Get My Transfers
 // ===============================
 transfersRoutes.get(
   '/',
   authMiddleware,
   async (c) => {
-
-    const user =
-      c.get('user');
-
-
-    const transfers =
-      await getUserTransfers(
-        user.sub
-      );
-
+    const user = c.get('user');
+    const transfers = await getBorrowerTransfers(user.sub);  // Changed from getUserTransfers
 
     return c.json({
       success: true,
@@ -91,58 +56,15 @@ transfersRoutes.get(
   }
 );
 
-
 // ===============================
-// Get Transfer By Reference
-// ===============================
-transfersRoutes.get(
-  '/reference/:reference',
-  authMiddleware,
-  async (c) => {
-
-    const { reference } =
-      c.req.param();
-
-
-    transferReferenceValidator.parse({
-      reference,
-    });
-
-
-    const transfer =
-      await getTransferByReference(
-        reference
-      );
-
-
-    return c.json({
-      success: true,
-      data: transfer,
-    });
-  }
-);
-
-
-// ===============================
-// Get Transfer By ID
+// Get Transfer by ID
 // ===============================
 transfersRoutes.get(
   '/:id',
   authMiddleware,
   async (c) => {
-
-    const { id } =
-      c.req.param();
-
-
-    transferIdValidator.parse({
-      id,
-    });
-
-
-    const transfer =
-      await getTransferById(id);
-
+    const { id } = c.req.param();
+    const transfer = await getTransferById(id);
 
     return c.json({
       success: true,
@@ -151,69 +73,21 @@ transfersRoutes.get(
   }
 );
 
+// ===============================
+// Get Transfer by Reference
+// ===============================
+transfersRoutes.get(
+  '/reference/:reference',
+  authMiddleware,
+  async (c) => {
+    const { reference } = c.req.param();
+    const transfer = await getTransferByReference(reference);
+
+    return c.json({
+      success: true,
+      data: transfer,
+    });
+  }
+);
 
 export default transfersRoutes;
-
-
-// import { Hono } from 'hono';
-// import { 
-//   initiateTransferValidator, 
-//   transferIdValidator,
-//   transferReferenceValidator
-// } from '../../validators';
-// import { 
-//   initiateTransfer, 
-//   getTransferById, 
-//   getUserTransfers,
-//   getTransferByReference
-// } from '../../services/transferService';
-// import { authMiddleware } from '../../middleware/auth';
-
-// const transfersRoutes = new Hono();
-
-// // Initiate transfer
-// transfersRoutes.post('/', authMiddleware, async (c) => {
-//   const userId = c.get('userId');
-//   const body = await c.req.json();
-//   const validated = initiateTransferValidator.parse(body);
-//   const transfer = await initiateTransfer({ ...validated, fromUserId: userId });
-//   return c.json({
-//     success: true,
-//     message: 'Transfer initiated successfully',
-//     data: transfer,
-//   }, 201);
-// });
-
-// // List my transfers
-// transfersRoutes.get('/', authMiddleware, async (c) => {
-//   const userId = c.get('userId');
-//   const transfers = await getUserTransfers(userId);
-//   return c.json({
-//     success: true,
-//     data: transfers,
-//   });
-// });
-
-// // Get transfer by ID
-// transfersRoutes.get('/:id', authMiddleware, async (c) => {
-//   const { id } = c.req.param();
-//   transferIdValidator.parse({ id });
-//   const transfer = await getTransferById(id);
-//   return c.json({
-//     success: true,
-//     data: transfer,
-//   });
-// });
-
-// // Get transfer by reference
-// transfersRoutes.get('/reference/:reference', authMiddleware, async (c) => {
-//   const { reference } = c.req.param();
-//   transferReferenceValidator.parse({ reference });
-//   const transfer = await getTransferByReference(reference);
-//   return c.json({
-//     success: true,
-//     data: transfer,
-//   });
-// });
-
-// export default transfersRoutes;

@@ -16,7 +16,6 @@ const ROLES = [
 ];
 
 export const Register: React.FC = () => {
-  const navigate = useNavigate();
   const { register } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
@@ -50,14 +49,7 @@ export const Register: React.FC = () => {
       const result = await register(registerData);
       if (result.success) {
         toast.success(`Registration successful! Welcome to MaxCash as a ${formData.role}.`);
-        // Redirect based on role
-        const roleRoutes: Record<string, string> = {
-          borrower: '/dashboard',
-          manager: '/manager/dashboard',
-          auditor: '/auditor/dashboard',
-          admin: '/admin/dashboard',
-        };
-        navigate(roleRoutes[formData.role] || '/dashboard');
+        // Navigation is handled by useAuth.register() based on role
       } else {
         toast.error(result.error || 'Registration failed. Please try again.');
       }

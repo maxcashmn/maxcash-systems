@@ -2,8 +2,10 @@ import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 
 import { getAuthConfig } from '../config';
 
-function getSecrets() {
-  const authConfig = getAuthConfig();
+type Env = Record<string, string | undefined>;
+
+function getSecrets(env?: Env) {
+  const authConfig = getAuthConfig(env as any);
 
   return {
     authConfig,
@@ -18,9 +20,10 @@ function getSecrets() {
 
 export async function signJWT(
   payload: JWTPayload,
-  expiresIn?: string
+  expiresIn?: string,
+  env?: Env
 ): Promise<string> {
-  const { authConfig, secret } = getSecrets();
+  const { authConfig, secret } = getSecrets(env);
 
   return new SignJWT(payload)
     .setProtectedHeader({
@@ -34,10 +37,11 @@ export async function signJWT(
 }
 
 export async function verifyJWT(
-  token: string
+  token: string,
+  env?: Env
 ): Promise<JWTPayload> {
   try {
-    const { secret } = getSecrets();
+    const { secret } = getSecrets(env);
 
     const { payload } = await jwtVerify(
       token,
@@ -54,9 +58,10 @@ export async function verifyJWT(
 
 export async function signRefreshToken(
   payload: JWTPayload,
-  expiresIn?: string
+  expiresIn?: string,
+  env?: Env
 ): Promise<string> {
-  const { authConfig, refreshSecret } = getSecrets();
+  const { authConfig, refreshSecret } = getSecrets(env);
 
   return new SignJWT(payload)
     .setProtectedHeader({
@@ -70,10 +75,11 @@ export async function signRefreshToken(
 }
 
 export async function verifyRefreshToken(
-  token: string
+  token: string,
+  env?: Env
 ): Promise<JWTPayload> {
   try {
-    const { refreshSecret } = getSecrets();
+    const { refreshSecret } = getSecrets(env);
 
     const { payload } = await jwtVerify(
       token,

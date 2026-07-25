@@ -46,7 +46,7 @@ transactionsRoutes.post(
     const transaction =
       await createTransaction({
         ...validated,
-        userId: user.sub,
+        borrowerId: user.sub,
       });
 
 

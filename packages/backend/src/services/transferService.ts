@@ -7,8 +7,8 @@ const transferRepo = new TransferRepository();
 const walletRepo = new WalletRepository();
 
 export async function initiateTransfer(data: {
-  fromUserId: string;
-  toUserId: string;
+  fromBorrowerId: string;
+  toBorrowerId: string;
   amount: number;
   description?: string;
 }) {
@@ -16,12 +16,12 @@ export async function initiateTransfer(data: {
     throw AppError.validation('Amount must be greater than 0');
   }
 
-  if (data.fromUserId === data.toUserId) {
+  if (data.fromBorrowerId === data.toBorrowerId) {
     throw AppError.validation('Cannot transfer to yourself');
   }
 
   // Check sender's wallet
-  const senderWallet = await walletRepo.findByUserId(data.fromUserId);
+  const senderWallet = await walletRepo.findByBorrowerId(data.fromBorrowerId);
   if (!senderWallet) {
     throw AppError.notFound('Sender wallet not found');
   }
@@ -31,7 +31,7 @@ export async function initiateTransfer(data: {
   }
 
   // Check recipient's wallet
-  const recipientWallet = await walletRepo.findByUserId(data.toUserId);
+  const recipientWallet = await walletRepo.findByBorrowerId(data.toBorrowerId);
   if (!recipientWallet) {
     throw AppError.notFound('Recipient wallet not found');
   }
@@ -41,8 +41,8 @@ export async function initiateTransfer(data: {
   // Create transfer record
   const transfer = await transferRepo.create({
     id: generateId(),
-    from_user_id: data.fromUserId,
-    to_user_id: data.toUserId,
+    from_borrower_id: data.fromBorrowerId,
+    to_borrower_id: data.toBorrowerId,
     amount: data.amount,
     status: 'pending',
     reference,
@@ -63,9 +63,9 @@ async function processTransfer(transferId: string) {
 
   try {
     // Deduct from sender
-    await walletRepo.decrementBalance(transfer.from_user_id, transfer.amount);
+    await walletRepo.decrementBalance(transfer.from_borrower_id, transfer.amount);
     // Credit to recipient
-    await walletRepo.incrementBalance(transfer.to_user_id, transfer.amount);
+    await walletRepo.incrementBalance(transfer.to_borrower_id, transfer.amount);
     // Update transfer status
     await transferRepo.updateStatus(transferId, 'completed');
   } catch (error) {
@@ -82,8 +82,8 @@ export async function getTransferById(transferId: string) {
   return transfer;
 }
 
-export async function getUserTransfers(userId: string) {
-  return await transferRepo.findByUserId(userId);
+export async function getBorrowerTransfers(borrowerId: string) {
+  return await transferRepo.findByBorrowerId(borrowerId);
 }
 
 export async function getTransferByReference(reference: string) {

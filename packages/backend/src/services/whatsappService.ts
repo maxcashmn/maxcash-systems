@@ -342,7 +342,7 @@ export const whatsappService = {
     message: string;
     subject?: string;
   }): Promise<any> {
-    const adminNumber = process.env.ADMIN_WHATSAPP_NUMBER || '+231777542605';
+    const adminNumber = (typeof process !== 'undefined' && process.env && process.env.ADMIN_WHATSAPP_NUMBER) || '+231777542605';
     
     const message = `
 🌟 *New Contact Form Submission* 🌟
@@ -492,7 +492,9 @@ export const createWhatsAppService = (customConfig?: {
 }) => {
   // Override admin number if provided
   if (customConfig?.adminNumber) {
-    process.env.ADMIN_WHATSAPP_NUMBER = customConfig.adminNumber;
+    if (typeof process !== 'undefined' && process.env) {
+      process.env.ADMIN_WHATSAPP_NUMBER = customConfig.adminNumber;
+    }
   }
 
   return whatsappService;

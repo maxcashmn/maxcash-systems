@@ -16,7 +16,7 @@ export interface TransactionListResult {
 
 export interface CreateTransactionData {
   id: string;
-  borrowerId: string;  // Changed from userId
+  borrowerId: string;
   loanId?: string;
   type: string;
   amount: number;
@@ -25,6 +25,8 @@ export interface CreateTransactionData {
   status?: string;
   reference: string;
   description?: string;
+  balanceAfter?: number;
+  createdBy?: string;
   metadata?: any;
 }
 
@@ -38,6 +40,7 @@ interface TransactionRow {
   method?: string;
   status: string;
   reference: string;
+  description?: string;
   balance_after?: number;
   created_by?: string;
   transaction_date: Date;
@@ -49,17 +52,21 @@ interface TransactionRow {
 export class TransactionRepository extends BaseRepository<Transaction> {
   protected tableName = 'transactions';
 
+  /**
+   * Map database row to entity
+   */
   protected mapToEntity(row: TransactionRow): Transaction {
     return {
       id: row.id,
-      loanId: row.loan_id,
       borrowerId: row.borrower_id,
+      loanId: row.loan_id,
       type: row.type,
       amount: row.amount,
       currency: row.currency || 'USD',
       method: row.method,
       status: row.status,
       reference: row.reference,
+      description: row.description,
       balanceAfter: row.balance_after,
       createdBy: row.created_by,
       transactionDate: row.transaction_date || row.created_at,
@@ -75,8 +82,9 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     const result = await this.query(
       `INSERT INTO transactions (
         id, loan_id, borrower_id, type, amount, currency, method, 
-        status, reference, balance_after, created_by, transaction_date, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+        status, reference, description, balance_after, created_by, 
+        transaction_date, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
       RETURNING *`,
       [
         data.id,
@@ -88,9 +96,10 @@ export class TransactionRepository extends BaseRepository<Transaction> {
         data.method || 'manual',
         data.status || 'pending',
         data.reference,
-        null, // balance_after
-        data.borrowerId, // created_by
-        new Date(), // transaction_date
+        data.description || null,
+        data.balanceAfter || null,
+        data.createdBy || data.borrowerId,
+        new Date(),
       ]
     );
 
@@ -121,6 +130,21 @@ export class TransactionRepository extends BaseRepository<Transaction> {
        AND (deleted_at IS NULL OR deleted_at > NOW()) 
        ORDER BY created_at DESC`,
       [borrowerId]
+    );
+
+    return result.map((row: any) => this.mapToEntity(row));
+  }
+
+  /**
+   * Find transactions by loan ID
+   */
+  async findByLoanId(loanId: string): Promise<Transaction[]> {
+    const result = await this.query(
+      `SELECT * FROM ${this.tableName} 
+       WHERE loan_id = $1 
+       AND (deleted_at IS NULL OR deleted_at > NOW()) 
+       ORDER BY created_at DESC`,
+      [loanId]
     );
 
     return result.map((row: any) => this.mapToEntity(row));
@@ -222,10 +246,10 @@ export class TransactionRepository extends BaseRepository<Transaction> {
       [...params, limit, offset]
     );
 
-    const total = await this.count({ 
-      borrower_id: borrowerId, 
-      type: filter?.type, 
-      status: filter?.status 
+    const total = await this.count({
+      borrower_id: borrowerId,
+      type: filter?.type,
+      status: filter?.status,
     });
 
     return {

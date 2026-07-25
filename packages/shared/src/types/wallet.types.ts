@@ -1,6 +1,8 @@
+// src/types/wallet.types.ts
+
 export interface Wallet {
   id: string;
-  userId: string;
+  borrowerId: string;    // Changed from userId
   balance: number;
   currency: string;
   status: string;

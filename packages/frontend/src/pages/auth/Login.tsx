@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../core/hooks/useAuth';
 import { useToast } from '../../core/hooks/useToast';
 import { Button } from '../../components/ui/Button';
@@ -7,7 +7,6 @@ import { Input } from '../../components/ui/Input';
 import { ROUTES } from '../../core/constants/routes';
 
 export const Login: React.FC = () => {
-  const navigate = useNavigate();
   const { login } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
@@ -22,12 +21,10 @@ export const Login: React.FC = () => {
 
     try {
       const result = await login(formData.email, formData.password);
-      if (result.success) {
-        toast.success('Login successful! Welcome back.');
-        navigate('/dashboard');
-      } else {
+      if (!result.success) {
         toast.error(result.error || 'Login failed. Please try again.');
       }
+      // Navigation is handled by useAuth.login() based on role
     } catch (error) {
       toast.error('An unexpected error occurred.');
     } finally {

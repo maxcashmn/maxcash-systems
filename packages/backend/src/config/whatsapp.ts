@@ -8,8 +8,15 @@ export function getWhatsAppConfig(
   const getEnv = (
     key: keyof Bindings,
     fallback = ''
-  ): string =>
-    String(env[key] ?? process.env[key] ?? fallback);
+  ): string => {
+    if (env && env[key] !== undefined && env[key] !== null) {
+      return String(env[key]);
+    }
+    if (typeof process !== 'undefined' && process.env && process.env[key] !== undefined) {
+      return String(process.env[key]);
+    }
+    return String(fallback);
+  };
 
   return {
     phoneNumberId: getEnv(

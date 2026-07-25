@@ -8,8 +8,17 @@ export function getAuthConfig(
   const getEnv = (
     key: keyof Bindings,
     fallback = ''
-  ): string =>
-    String(env[key] ?? process.env[key] ?? fallback);
+  ): string => {
+    // Check Cloudflare Worker env bindings first
+    if (env && env[key] !== undefined && env[key] !== null) {
+      return String(env[key]);
+    }
+    // Check process.env for local/Node.js environments (safe check for Workers)
+    if (typeof process !== 'undefined' && process.env && process.env[key] !== undefined) {
+      return String(process.env[key]);
+    }
+    return String(fallback);
+  };
 
   return {
     jwt: {
@@ -18,8 +27,10 @@ export function getAuthConfig(
         'your-super-secret-jwt-key-change-in-production'
       ),
 
-      expiresIn:
-        process.env.JWT_EXPIRES_IN ?? '15m',
+      expiresIn: getEnv(
+        'JWT_EXPIRES_IN',
+        '15m'
+      ),
 
       algorithm: 'HS256' as const,
     },
@@ -30,8 +41,10 @@ export function getAuthConfig(
         'your-super-secret-refresh-key-change-in-production'
       ),
 
-      expiresIn:
-        process.env.JWT_REFRESH_EXPIRES_IN ?? '7d',
+      expiresIn: getEnv(
+        'JWT_REFRESH_EXPIRES_IN',
+        '7d'
+      ),
     },
 
     bcrypt: {

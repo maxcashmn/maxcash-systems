@@ -16,7 +16,7 @@ export async function reconcileTransaction(transactionId: string) {
   const ledgerEntries = await ledgerRepo.findByTransactionId(transactionId);
 
   // Verify balances
-  const wallet = await walletRepo.findByUserId(transaction.userId);
+  const wallet = await walletRepo.findByBorrowerId(transaction.borrowerId);
   if (!wallet) {
     throw new Error('Wallet not found');
   }
@@ -39,8 +39,8 @@ export async function reconcileTransaction(transactionId: string) {
   };
 }
 
-export async function reconcileUserTransactions(userId: string) {
-  const transactions = await transactionRepo.findByUserId(userId);
+export async function reconcileUserTransactions(borrowerId: string) {
+  const transactions = await transactionRepo.findByBorrowerId(borrowerId);
   const results = [];
 
   for (const transaction of transactions) {
