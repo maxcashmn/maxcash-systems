@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/backend/**"
+      - 'packages/backend/**'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -15,21 +15,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
-
-      - name: Install pnpm
-        run: npm install -g pnpm@8
-
+          node-version: '24'
+          
       - name: Install dependencies
-        run: pnpm install
-
+        run: |
+          npm install -g pnpm@8
+          pnpm install
+        
       - name: Build backend
-        run: cd packages/backend && pnpm build
-
+        run: |
+          cd packages/backend
+          pnpm build
+        
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
