@@ -22,14 +22,10 @@ jobs:
           node-version: '24'
           
       - name: Install dependencies
-        run: |
-          npm install -g pnpm@8
-          pnpm install
+        run: cd packages/backend && npm install
         
       - name: Build backend
-        run: |
-          cd packages/backend
-          pnpm build
+        run: cd packages/backend && npm run build
         
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
