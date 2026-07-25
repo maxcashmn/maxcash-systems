@@ -2,11 +2,8 @@ name: Deploy Backend to Cloudflare Workers
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
@@ -14,18 +11,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          
+          node-version: "20"
+
       - name: Install dependencies
         run: cd packages/backend && npm install
-        
+
       - name: Build backend
         run: cd packages/backend && npm run build
-        
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
