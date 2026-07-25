@@ -53,14 +53,6 @@ const VALID_TYPES = [
 
 type TransactionType = typeof VALID_TYPES[number];
 
-// const VALID_STATUSES = [
-//   'pending',
-//   'processing',
-//   'completed',
-//   'failed',
-//   'cancelled',
-// ] as const;
-
 const VALID_METHODS = [
   'manual',
   'bank_transfer',
@@ -68,6 +60,8 @@ const VALID_METHODS = [
   'cash',
   'card',
 ] as const;
+
+const VALID_CURRENCIES = ['USD', 'LRD'] as const;
 
 // ===============================
 // Transaction CRUD Operations
@@ -90,7 +84,7 @@ export async function createTransaction(data: CreateTransactionData) {
   }
 
   // Validate currency
-  if (data.currency && !['USD', 'LRD'].includes(data.currency)) {
+  if (data.currency && !VALID_CURRENCIES.includes(data.currency as any)) {
     throw AppError.validation('Currency must be USD or LRD');
   }
 

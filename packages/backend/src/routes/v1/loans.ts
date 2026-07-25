@@ -24,11 +24,9 @@ import { requireRole } from '../../middleware/rbac';
 
 import type { Bindings } from '../../types';
 
-
 const loansRoutes = new Hono<{
   Bindings: Bindings;
 }>();
-
 
 // ===============================
 // Apply For Loan
@@ -37,38 +35,30 @@ loansRoutes.post(
   '/',
   authMiddleware,
   async (c) => {
+    const user = c.get('user');
+    const body = await c.req.json();
+    const validated = applyLoanValidator.parse(body);
 
-    const user =
-      c.get('user');
-
-
-    const body =
-      await c.req.json();
-
-
-    const validated =
-      applyLoanValidator.parse(body);
-
-
-    const loan =
-      await applyForLoan({
-        ...validated,
-        userId: user.sub,
-      });
-
+    // Ensure all required fields are present with defaults
+    const loan = await applyForLoan({
+      userId: user.sub,
+      amount: validated.amount || 0,
+      termMonths: validated.termMonths || 12,
+      purpose: validated.purpose || 'general',
+      employmentStatus: validated.employmentStatus || 'employed',
+      monthlyIncome: validated.monthlyIncome || 0,
+    });
 
     return c.json(
       {
         success: true,
-        message:
-          'Loan application submitted successfully',
+        message: 'Loan application submitted successfully',
         data: loan,
       },
       201
     );
   }
 );
-
 
 // ===============================
 // List My Loans
@@ -77,16 +67,8 @@ loansRoutes.get(
   '/',
   authMiddleware,
   async (c) => {
-
-    const user =
-      c.get('user');
-
-
-    const loans =
-      await getUserLoans(
-        user.sub
-      );
-
+    const user = c.get('user');
+    const loans = await getUserLoans(user.sub);
 
     return c.json({
       success: true,
@@ -95,7 +77,6 @@ loansRoutes.get(
   }
 );
 
-
 // ===============================
 // Get Loan By ID
 // ===============================
@@ -103,19 +84,9 @@ loansRoutes.get(
   '/:id',
   authMiddleware,
   async (c) => {
-
-    const { id } =
-      c.req.param();
-
-
-    loanIdValidator.parse({
-      id,
-    });
-
-
-    const loan =
-      await getLoanById(id);
-
+    const { id } = c.req.param();
+    loanIdValidator.parse({ id });
+    const loan = await getLoanById(id);
 
     return c.json({
       success: true,
@@ -124,7 +95,6 @@ loansRoutes.get(
   }
 );
 
-
 // ===============================
 // Approve Loan
 // Admin / Manager
@@ -132,46 +102,25 @@ loansRoutes.get(
 loansRoutes.patch(
   '/:id/approve',
   authMiddleware,
-  requireRole(
-    'admin',
-    'manager'
-  ),
+  requireRole('admin', 'manager'),
   async (c) => {
-
-    const { id } =
-      c.req.param();
-
-
-    loanIdValidator.parse({
-      id,
-    });
-
-
-    const user =
-      c.get('user');
-
-
-    const body =
-      await c.req.json();
-
-
+    const { id } = c.req.param();
+    loanIdValidator.parse({ id });
+    const user = c.get('user');
+    
+    // Validate the request body
+    const body = await c.req.json();
     approveLoanValidator.parse(body);
 
-
-    await approveLoan(
-      id,
-      user.sub
-    );
-
+    // approveLoan takes 2 arguments: loanId and userId
+    await approveLoan(id, user.sub);
 
     return c.json({
       success: true,
-      message:
-        'Loan approved successfully',
+      message: 'Loan approved successfully',
     });
   }
 );
-
 
 // ===============================
 // Reject Loan
@@ -180,43 +129,21 @@ loansRoutes.patch(
 loansRoutes.patch(
   '/:id/reject',
   authMiddleware,
-  requireRole(
-    'admin',
-    'manager'
-  ),
+  requireRole('admin', 'manager'),
   async (c) => {
+    const { id } = c.req.param();
+    loanIdValidator.parse({ id });
+    const body = await c.req.json();
+    const validated = rejectLoanValidator.parse(body);
 
-    const { id } =
-      c.req.param();
-
-
-    loanIdValidator.parse({
-      id,
-    });
-
-
-    const body =
-      await c.req.json();
-
-
-    const validated =
-      rejectLoanValidator.parse(body);
-
-
-    await rejectLoan(
-      id,
-      validated.reason
-    );
-
+    await rejectLoan(id, validated.reason);
 
     return c.json({
       success: true,
-      message:
-        'Loan rejected',
+      message: 'Loan rejected successfully',
     });
   }
 );
-
 
 // ===============================
 // Disburse Loan
@@ -227,27 +154,18 @@ loansRoutes.patch(
   authMiddleware,
   requireRole('admin'),
   async (c) => {
+    const { id } = c.req.param();
+    loanIdValidator.parse({ id });
 
-    const { id } =
-      c.req.param();
-
-
-    loanIdValidator.parse({
-      id,
-    });
-
-
-    await disburseLoan(id);
-
+    const loan = await disburseLoan(id);
 
     return c.json({
       success: true,
-      message:
-        'Loan disbursed successfully',
+      message: 'Loan disbursed successfully',
+      data: loan,
     });
   }
 );
-
 
 // ===============================
 // Active Loans
@@ -256,15 +174,9 @@ loansRoutes.patch(
 loansRoutes.get(
   '/active/all',
   authMiddleware,
-  requireRole(
-    'admin',
-    'manager'
-  ),
+  requireRole('admin', 'manager'),
   async (c) => {
-
-    const loans =
-      await getActiveLoans();
-
+    const loans = await getActiveLoans();
 
     return c.json({
       success: true,
@@ -273,111 +185,18 @@ loansRoutes.get(
   }
 );
 
+// ===============================
+// Error Handling
+// ===============================
+loansRoutes.onError((err, c) => {
+  console.error('Loan route error:', err);
+  return c.json(
+    {
+      success: false,
+      message: err.message || 'Internal server error',
+    },
+    500
+  );
+});
 
 export default loansRoutes;
-
-
-
-// import { Hono } from 'hono';
-// import { 
-//   applyLoanValidator, 
-//   approveLoanValidator,
-//   rejectLoanValidator,
-//   loanIdValidator
-// } from '../../validators';
-// import { 
-//   applyForLoan,
-//   approveLoan,
-//   rejectLoan,
-//   disburseLoan,
-//   getLoanById,
-//   getUserLoans,
-//   getActiveLoans
-// } from '../../services/loanService';
-// import { authMiddleware } from '../../middleware/auth';
-// import { requireRole } from '../../middleware/rbac';
-
-// const loansRoutes = new Hono();
-
-// // Apply for loan
-// loansRoutes.post('/', authMiddleware, async (c) => {
-//   const userId = c.get('userId');
-//   const body = await c.req.json();
-//   const validated = applyLoanValidator.parse(body);
-//   const loan = await applyForLoan({ ...validated, userId });
-//   return c.json({
-//     success: true,
-//     message: 'Loan application submitted successfully',
-//     data: loan,
-//   }, 201);
-// });
-
-// // List my loans
-// loansRoutes.get('/', authMiddleware, async (c) => {
-//   const userId = c.get('userId');
-//   const loans = await getUserLoans(userId);
-//   return c.json({
-//     success: true,
-//     data: loans,
-//   });
-// });
-
-// // Get loan by ID
-// loansRoutes.get('/:id', authMiddleware, async (c) => {
-//   const { id } = c.req.param();
-//   loanIdValidator.parse({ id });
-//   const loan = await getLoanById(id);
-//   return c.json({
-//     success: true,
-//     data: loan,
-//   });
-// });
-
-// // Approve loan (Manager/Admin only)
-// loansRoutes.patch('/:id/approve', authMiddleware, requireRole('admin', 'manager'), async (c) => {
-//   const { id } = c.req.param();
-//   loanIdValidator.parse({ id });
-//   const userId = c.get('userId');
-//   const body = await c.req.json();
-//   approveLoanValidator.parse(body);
-//   await approveLoan(id, userId);
-//   return c.json({
-//     success: true,
-//     message: 'Loan approved successfully',
-//   });
-// });
-
-// // Reject loan (Manager/Admin only)
-// loansRoutes.patch('/:id/reject', authMiddleware, requireRole('admin', 'manager'), async (c) => {
-//   const { id } = c.req.param();
-//   loanIdValidator.parse({ id });
-//   const body = await c.req.json();
-//   const validated = rejectLoanValidator.parse(body);
-//   await rejectLoan(id, validated.reason);
-//   return c.json({
-//     success: true,
-//     message: 'Loan rejected',
-//   });
-// });
-
-// // Disburse loan (Admin only)
-// loansRoutes.patch('/:id/disburse', authMiddleware, requireRole('admin'), async (c) => {
-//   const { id } = c.req.param();
-//   loanIdValidator.parse({ id });
-//   await disburseLoan(id);
-//   return c.json({
-//     success: true,
-//     message: 'Loan disbursed successfully',
-//   });
-// });
-
-// // Get active loans (Admin/Manager only)
-// loansRoutes.get('/active/all', authMiddleware, requireRole('admin', 'manager'), async (c) => {
-//   const loans = await getActiveLoans();
-//   return c.json({
-//     success: true,
-//     data: loans,
-//   });
-// });
-
-// export default loansRoutes;
