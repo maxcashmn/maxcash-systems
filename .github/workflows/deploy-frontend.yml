@@ -2,19 +2,14 @@ name: Deploy Frontend to Cloudflare Pages
 
 on:
   push:
-    branches: [main]
-    paths:
-      - 'packages/frontend/**'
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -22,14 +17,10 @@ jobs:
           node-version: '24'
           
       - name: Install dependencies
-        run: |
-          npm install -g pnpm@8
-          pnpm install
+        run: cd packages/frontend && npm install
         
       - name: Build frontend
-        run: |
-          cd packages/frontend
-          pnpm build
+        run: cd packages/frontend && npm run build
         
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
